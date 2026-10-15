@@ -1,4 +1,4 @@
-# GCB FXFlow — Outward Remittance Prototype
+# GCB FXFlow —Prototype
 
 Single-file HTML prototype for a foreign transfer / outward remittance flow.
 

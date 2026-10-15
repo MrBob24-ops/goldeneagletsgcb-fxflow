@@ -3,7 +3,7 @@
 Single-file HTML prototype for a foreign transfer / outward remittance flow.
 
 ## Live demo
-https://goldeneagletsgcb-fxflow.netlify.app/
+https://fxflow-gcbgoldeneaglets.netlify.app/
 
 ## Demo shortcuts
 - Account: `1020130045678`

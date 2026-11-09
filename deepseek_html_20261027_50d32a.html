@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FXFlow Admin Portal</title>
+<meta name="description" content="Prototype administration portal for GCB FXFlow foreign transfer requests.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --gold:#F0C550;--gold2:#E3A72F;--goldbg:#FBF3DF;--navy:#34414E;--slate:#3F4651;--ink:#1F2933;--body:#5F6B76;--muted:#8A949E;
+  --line:#E4E8EE;--bg:#F3F5F8;--card:#fff;
+  --ok:#23824A;--okbg:#E6F4EC;--warn:#8F5E0A;--warnbg:#FDF3DC;--info:#245E9E;--infobg:#E6F0FB;--bad:#B33434;--badbg:#FCEAEA;--grey:#5B6570;--greybg:#EDF0F3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font-family:'Open Sans','Segoe UI',Arial,sans-serif;font-size:14px;line-height:20px;color:var(--ink);background:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--info)}
+:focus-visible{outline:3px solid var(--gold2);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+svg{display:block}
+
+/* sidebar */
+.side{position:fixed;top:0;bottom:0;left:0;width:268px;background:#F7F8FA;border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:40}
+.brand{padding:22px 20px 16px;text-align:center;border-bottom:1px solid var(--line)}
+.logo-tile{width:76px;height:64px;margin:0 auto;border-radius:14px;background:var(--slate) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 64'%3E%3Ctext x='38' y='42' font-family='Arial' font-size='20' font-weight='800' text-anchor='middle' fill='%23F0C550'%3EGCB%3C/text%3E%3C/svg%3E") center/54px no-repeat}
+.logo-tile.lg{width:96px;height:82px;background-size:68px}
+.brand-t{font-size:17px;font-weight:700;color:var(--navy);margin:12px 0 6px}
+.env{display:inline-block;font-size:10px;line-height:16px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);background:var(--warnbg);border:1px solid #EBD38A;border-radius:99px;padding:1px 9px}
+.nav{flex:1;overflow-y:auto;padding:8px 12px 12px}
+.nhead{display:flex;width:100%;justify-content:space-between;align-items:center;background:none;border:0;padding:10px 10px 4px;font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.nhead svg{width:14px;height:14px;transition:transform .15s}
+.nhead[aria-expanded="false"] svg{transform:rotate(-90deg)}
+.nitem{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:7px 12px;margin:1px 0;border-radius:8px;color:var(--navy);font-weight:600;font-size:14px;text-align:left}
+.nitem:hover{background:#ECEFF3}
+.nitem.on{background:var(--gold2);color:#1B232B;box-shadow:0 2px 8px rgba(227,167,47,.35)}
+.nitem svg{width:18px;height:18px;flex:none;opacity:.85}
+.ncount{margin-left:auto;font-size:11px;line-height:18px;font-weight:700;background:#E2E6EB;border-radius:99px;padding:0 8px;color:var(--body)}
+.nitem.on .ncount{background:rgba(255,255,255,.6);color:#1B232B}
+.me{border-top:1px solid var(--line);padding:14px 16px 16px}
+.me-n{font-weight:700;color:var(--navy)}
+.me-r{font-size:12px;color:var(--muted)}
+.logout{width:100%;margin-top:12px;display:flex;justify-content:center;gap:8px;align-items:center;background:var(--slate);color:#fff;border:0;border-radius:8px;padding:11px;font-weight:600}
+.logout:hover{background:#2F353D}
+.logout svg{width:18px;height:18px}
+
+/* main */
+.main{margin-left:268px;min-width:0;padding:24px 28px 56px}
+.topbar{display:none}
+.scrim{display:none}
+.wrap{max-width:1320px;margin:0 auto}
+.phead{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.phead h1{margin:0;font-size:26px;line-height:34px;font-weight:700;color:var(--ink)}
+.phead p{margin:6px 0 0;color:var(--body)}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card+.card,.card+.grid2,.grid2+.card,.stats+.card,.card+.stats{margin-top:20px}
+.ctitle{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:16px;font-weight:700;color:var(--ink)}
+.ctitle svg{width:18px;height:18px;color:var(--gold2)}
+.ctitle .right{margin-left:auto}
+.muted{color:var(--muted)}.body{color:var(--body)}
+.small{font-size:12px;line-height:18px}
+.sec-label{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--body);margin:28px 0 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.stat{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+button.stat:hover{border-color:#CBD3DC;box-shadow:0 4px 14px rgba(16,24,40,.07)}
+.stat-l{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--body)}
+.stat-v{font-size:32px;line-height:42px;font-weight:700;margin-top:6px;color:var(--ink)}
+.stat-h{font-size:12px;line-height:17px;color:var(--muted);margin-top:2px}
+.stat.ok .stat-v{color:var(--ok)}.stat.warn .stat-v{color:#B07A12}.stat.info .stat-v{color:var(--info)}.stat.bad .stat-v{color:var(--bad)}
+.stat.sm .stat-v{font-size:20px;line-height:28px}
+
+/* quick actions */
+.qa{display:flex;flex-direction:column}
+.qa button{display:flex;align-items:center;gap:14px;width:100%;background:none;border:0;border-top:1px solid var(--line);padding:14px 6px;text-align:left;font-weight:600;color:var(--navy)}
+.qa button:first-child{border-top:0}
+.qa button:hover{background:#F8F9FB}
+.qa svg{width:18px;height:18px;color:var(--navy)}
+.qa .chev{margin-left:auto;color:var(--muted)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:8px;padding:9px 16px;font-weight:600;font-size:14px;line-height:20px;white-space:nowrap}
+.btn:hover{filter:brightness(1.12)}
+.btn svg{width:16px;height:16px}
+.btn.sec{background:#fff;color:var(--navy);border-color:#CBD3DC}
+.btn.sec:hover{filter:none;background:#F4F6F8}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1B232B}
+.btn.bad{background:#fff;color:var(--bad);border-color:#E9B4B4}
+.btn.bad:hover{filter:none;background:var(--badbg)}
+.btn.sm{padding:5px 12px;font-size:13px}
+.btn.full{width:100%}
+.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none}
+.link{background:none;border:0;padding:0;color:var(--info);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.back{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #CBD3DC;border-radius:10px;padding:8px 14px;font-weight:600;color:var(--navy);text-decoration:none}
+.back svg{width:16px;height:16px}
+.back:hover{background:#F4F6F8}
+
+/* badges */
+.b{display:inline-flex;align-items:center;gap:6px;font-size:12px;line-height:18px;font-weight:700;border-radius:99px;padding:2px 10px;white-space:nowrap;background:var(--greybg);color:var(--grey)}
+.b::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.b.ok{background:var(--okbg);color:var(--ok)}.b.warn{background:var(--warnbg);color:var(--warn)}.b.info{background:var(--infobg);color:var(--info)}.b.bad{background:var(--badbg);color:var(--bad)}
+.b.lg{font-size:13px;padding:5px 14px;border-radius:8px}
+.tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--body);border:1px solid var(--line);border-radius:4px;padding:0 5px;vertical-align:1px}
+
+/* filters + tables */
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:16px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.f.grow{flex:1;min-width:220px}
+.f span{font-size:12px;font-weight:600;color:var(--body)}
+.f input,.f select,.inp,textarea.inp{height:40px;border:1px solid #CFD6DE;border-radius:8px;padding:0 12px;background:#fff}
+textarea.inp{height:auto;min-height:90px;padding:10px 12px;width:100%;resize:vertical}
+.f input:focus,.f select:focus,.inp:focus{outline:2px solid var(--gold);border-color:var(--gold2)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;font-size:12px;font-weight:700;letter-spacing:.03em;color:var(--body);background:#F8F9FB;padding:0;border-bottom:1px solid var(--line);white-space:nowrap}
+th .sortb,th .th{display:flex;align-items:center;gap:4px;width:100%;background:none;border:0;padding:11px 14px;font-weight:700;color:var(--body);text-align:left}
+th .sortb:hover{color:var(--ink)}
+th .arrow{font-size:10px;color:var(--gold2)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr[data-row]{cursor:pointer}
+tbody tr[data-row]:hover td{background:#FBFCFD}
+td.n,th.n .sortb{text-align:right;justify-content:flex-end}
+.tfn{font-weight:700;color:var(--navy);letter-spacing:.01em;white-space:nowrap}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap}
+.empty{text-align:center;padding:40px 16px;color:var(--body)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+.alert{padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#F8F9FB;color:var(--ink)}
+.alert.bad{background:var(--badbg);border-color:#EFC2C2;color:#7E2222}
+.alert.warn{background:var(--warnbg);border-color:#EBD38A}
+.alert.info{background:var(--infobg);border-color:#BCD4EF}
+.alert.ok{background:var(--okbg);border-color:#B9DEC7}
+.alert+.alert{margin-top:10px}
+
+/* detail */
+.dhead{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 24px;margin-bottom:20px}
+.dtitle{display:flex;align-items:center;flex-wrap:wrap;gap:12px 16px;margin-top:14px}
+.dtitle h1{margin:0;font-size:28px;line-height:36px}
+.dmeta{display:flex;flex-wrap:wrap;gap:6px 18px;color:var(--body);margin-top:6px}
+.dmeta b{color:var(--ink)}
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin:0 -20px 20px;padding:0 12px}
+.tab{display:flex;align-items:center;gap:8px;border:0;background:none;padding:14px 16px;font-weight:600;color:var(--body);border-bottom:3px solid transparent;white-space:nowrap}
+.tab svg{width:16px;height:16px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--ink);border-bottom-color:var(--gold2);background:var(--goldbg)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+.kv{display:grid;grid-template-columns:minmax(140px,40%) 1fr;border-top:1px solid var(--line)}
+.kv>div{padding:11px 0;border-bottom:1px solid var(--line)}
+.kv>div:nth-child(odd){color:var(--body);padding-right:12px}
+.kv>div:nth-child(even){font-weight:600;text-align:right;word-break:break-word}
+.kv .na{color:var(--muted);font-weight:400;font-style:italic}
+.sub-h{font-weight:700;margin:20px 0 10px;color:var(--ink)}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{position:relative;padding:0 0 22px 36px}
+.timeline li::before{content:"";position:absolute;left:10px;top:22px;bottom:0;width:2px;background:var(--line)}
+.timeline li:last-child::before{display:none}
+.timeline .dot{position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;border:2px solid #C9D0D8;background:#fff;display:flex;align-items:center;justify-content:center}
+.timeline .done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.timeline .cur .dot{background:var(--gold);border-color:var(--gold2);box-shadow:0 0 0 4px rgba(240,197,80,.3)}
+.timeline .dot svg{width:12px;height:12px}
+.timeline .tl{font-weight:700}
+.timeline .wait .tl{color:var(--muted);font-weight:600}
+.checks{list-style:none;margin:0;padding:0}
+.checks li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.checks li:last-child{border-bottom:0}
+.ci{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.ci.ok{background:var(--ok)}.ci.warn{background:#C9962B}.ci.bad{background:var(--bad)}.ci.info{background:#8A949E}
+.ci svg{width:13px;height:13px}
+.ev{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.ev:last-child{border-bottom:0}
+.ev-t{font-weight:700}
+.ev-when{width:150px;flex:none;color:var(--body);font-size:13px}
+.actbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.comment{padding:14px;border:1px solid var(--line);border-radius:10px;background:#FBFCFD}
+.comment+.comment{margin-top:10px}
+.docsel{height:34px;border:1px solid #CFD6DE;border-radius:8px;padding:0 8px;background:#fff;max-width:200px}
+
+/* modal + toast */
+.mroot{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(21,24,28,.5)}
+.modal{width:100%;max-width:480px;max-height:100%;overflow:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal h2{margin:0 0 8px;font-size:19px}
+.modal .acts{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.toast{position:fixed;right:20px;bottom:20px;z-index:90;max-width:420px;background:var(--navy);color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+
+/* login */
+.login-body{background:linear-gradient(180deg,#DCE7F3 0%,#C9D8EA 100%);min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.login-card{width:100%;max-width:520px;background:rgba(255,255,255,.92);border:1px solid #D7E0EA;border-radius:18px;padding:40px 40px 32px;box-shadow:0 18px 50px rgba(31,41,51,.12);text-align:center}
+.login-card h1{margin:22px 0 8px;font-size:30px;line-height:38px;color:var(--navy);font-weight:700}
+.lsub{margin:0 0 12px;color:var(--body);font-size:16px}
+.fl{display:flex;flex-direction:column;gap:6px;text-align:left;margin-top:20px}
+.fl>span,.flrow label{font-weight:700;color:var(--ink)}
+.flrow{display:flex;justify-content:space-between;align-items:center}
+.fl input{height:50px;border:1px solid #CFD6DE;border-radius:8px;padding:0 14px;background:#fff;width:100%}
+.fl input:focus{outline:2px solid var(--gold);border-color:var(--gold2)}
+.pw{position:relative}
+.pw input{padding-right:50px}
+.eye{position:absolute;right:6px;top:6px;width:38px;height:38px;border:0;background:none;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--navy)}
+.eye svg{width:20px;height:20px}
+.chk{display:flex;align-items:center;gap:10px;margin:18px 0;text-align:left;color:var(--body)}
+.chk input{width:18px;height:18px}
+.login-card .btn.gold{height:52px;font-size:16px;margin-top:4px}
+.demo{margin-top:16px;padding:10px 12px;border-radius:8px;background:var(--goldbg);border:1px solid #EBD38A;font-size:12px;line-height:18px;color:var(--ink);text-align:left}
+.home-link{display:inline-flex;align-items:center;gap:8px;margin-top:22px;color:var(--body);text-decoration:none;font-weight:600}
+.home-link svg{width:16px;height:16px}
+.home-link:hover{color:var(--navy)}
+
+/* responsive */
+@media (max-width:900px){
+  .side{transform:translateX(-100%);transition:transform .2s ease}
+  .side.open{transform:none;box-shadow:0 0 40px rgba(0,0,0,.25)}
+  .scrim.open{display:block;position:fixed;inset:0;background:rgba(21,24,28,.4);z-index:35}
+  .main{margin-left:0;padding:0 14px 40px}
+  .topbar{display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:30;margin:0 -14px 16px;padding:10px 14px;background:var(--slate);color:#fff}
+  .topbar .mb{width:40px;height:38px;border:1px solid rgba(255,255,255,.3);border-radius:8px;background:none;color:#fff;display:flex;align-items:center;justify-content:center}
+  .topbar .mb svg{width:20px;height:20px}
+  .topbar .tlogo{width:34px;height:30px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 34 30'%3E%3Ctext x='17' y='22' font-family='Arial' font-size='11' font-weight='800' text-anchor='middle' fill='%23F0C550'%3EGCB%3C/text%3E%3C/svg%3E") center/contain no-repeat}
+  .topbar b{font-size:16px}
+  .phead{padding:18px}
+  .phead h1{font-size:22px;line-height:28px}
+  .dhead{padding:16px}
+  .dtitle h1{font-size:22px;line-height:28px}
+  .card{padding:16px}
+  .tabs{margin:0 -16px 16px}
+  .kv{grid-template-columns:1fr}
+  .kv>div:nth-child(odd){padding-bottom:0;border-bottom:0;font-size:12px}
+  .kv>div:nth-child(even){text-align:left;padding-top:2px}
+  .ev{flex-direction:column;gap:2px}
+  .ev-when{width:auto}
+  .login-card{padding:28px 20px 24px}
+  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .stat{padding:12px 14px}.stat-v{font-size:26px;line-height:34px}.stat.sm .stat-v{font-size:16px;line-height:22px}
+}
+@media (prefers-reduced-motion:reduce){.side{transition:none}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="mroot"></div>
+<script>
+(function(){
+'use strict';
+/* ==========================================================================
+   1. STORAGE KEYS SHARED WITH THE CUSTOMER PORTAL (Fxflowofficial.html)
+   gcbfx_requests_v1 : object keyed by TF number, written by the customer portal
+   gcbfx_mandate_v1  : latest company signatory session, written by the customer portal
+   gcbfx_admin_v1    : admin only data (reviews, comments, activity log). New key.
+   ========================================================================== */
+const RQK='gcbfx_requests_v1',MSK='gcbfx_mandate_v1',ADK='gcbfx_admin_v1',SSK='gcbfx_admin_session_v1';
+/* Two demo roles. Operations reviews and sends for approval; Payments approves and releases (four eyes). */
+const ROLES={ops:{users:['admin@fxflow.demo','fxadmin'],pass:'FXFlowDemo2026',id:'DEMO ADMIN 01',name:'Demo Administrator',role:'Operations Reviewer'},
+pay:{users:['payments@fxflow.demo','fxpay'],pass:'FXPayDemo2026',id:'DEMO PAY 01',name:'Demo Payments Officer',role:'Payments Officer (SWIFT)'}};
+let ADMIN=ROLES.ops;
+const isPay=()=>ADMIN===ROLES.pay;
+/* Sample correspondent setup. Editable by the Payments Officer in Settings. Not live routing data. */
+const CFG_DEFAULT={intName:'Citibank N.A., New York',intBic:'CITIUS33',intAddr:'388 Greenwich Street, New York, NY, United States',nostro:'3600 0000 01 (sample)',senderName:'GCB Bank PLC, Accra',senderBic:'GHCBGHAC'};
+const RATES={GHS:12.45,GBP:1.31,EUR:1.12};
+let storeOK=true,memRQ=null,memAD=null,memS=null;
+function rd(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){storeOK=false;return null}}
+function wr(k,o){try{localStorage.setItem(k,JSON.stringify(o));storeOK=true;return true}catch(e){storeOK=false;return false}}
+function rqAll(){const o=rd(RQK);if(o&&typeof o==='object'&&!Array.isArray(o))return o;return memRQ||{}}
+function rqUpd(tf,f){const o=rqAll();if(!o[tf])return false;f(o[tf]);memRQ=o;return wr(RQK,o)}
+
+/* ==========================================================================
+   2. REFERENCE DATA COPIED FROM THE CUSTOMER PORTAL (read only)
+   ========================================================================== */
+const REC={'1020130088888':{p:'244987654',e:'treasury@example.com',n:'Adom Ventures Ltd (Demo)',m:2,tin:'C0012345678',t:'Current',cur:'GHS',bal:250000,sg:[{card:'GHA-222222222-2',p:'201234567',e:'kwame@example.com'},{card:'GHA-333333333-3',p:'557654321',e:'efua@example.com'}]},
+'1020130045678':{p:'244123456',e:'ama@example.com',n:'Ama Mensah',card:'GHA-123456789-0',dob:'1985-04-12',addr:'14 Palm Street, East Legon, Accra',t:'Current',cur:'GHS',bal:85400},
+'1020130000000':{p:'244123456',e:'',n:'Ama Mensah',card:'GHA-123456789-0',dob:'1985-04-12',addr:'14 Palm Street, East Legon, Accra',t:'Savings',cur:'GHS',bal:12250},
+'1021610555555':{p:'244987654',e:'treasury@example.com',n:'Adom Ventures Ltd (Demo)',tin:'C0012345678',t:'Current',cur:'USD',bal:120000,fat:'Foreign Exchange Account'},
+'1021600111111':{p:'244555111',e:'kojo@example.com',n:'Kojo Asante (Demo)',card:'GHA-444444444-4',dob:'1990-07-22',addr:'5 Ring Road, Osu, Accra',t:'Current',cur:'USD',bal:9500,fat:'Foreign Currency Account'},
+'1021610222222':{p:'244555111',e:'kojo@example.com',n:'Kojo Asante (Demo)',card:'GHA-444444444-4',dob:'1990-07-22',addr:'5 Ring Road, Osu, Accra',t:'Savings',cur:'GBP',bal:4200,fat:'Foreign Exchange Account'},
+'1021600333333':{p:'244555222',e:'yaa@example.com',n:'Yaa Boateng (Demo)',card:'GHA-555555555-5',dob:'1988-02-03',addr:'22 Harbour Road, Tema',t:'Current',cur:'EUR',bal:15800,fat:'Foreign Currency Account'},
+'1020130444444':{p:'244555222',e:'yaa@example.com',n:'Yaa Boateng (Demo)',card:'GHA-555555555-5',dob:'1988-02-03',addr:'22 Harbour Road, Tema',t:'Savings',cur:'GHS',bal:3400}};
+const TYPES={tuition:{t:'Tuition Payment',docs:['Correspondence from the institution','Admission letter']},
+subscription:{t:'Subscription Payment',docs:['Correspondence from the institution','Subscription notice']},
+dividend:{t:'Dividends on equity investments',docs:['Evidence of equity investment in Ghana (e.g. GIPC certificate)','Financial report declaring the dividend for the year','Board announcement authorising payment','Company tax clearance certificate']},
+salary:{t:'Salaries for expatriate employees',docs:['Copy of letter of engagement (original sighted)','Resident and work permits (Ministry of Interior)','Employee income tax clearance certificate','Statement of income and expenditure']},
+advance:{t:'Advance payment',docs:['Pro forma invoice','Import Declaration Form (IDF)']},open:{t:'Open account',docs:[]},personal:{t:'Personal remittances',docs:['Ghana Card ID']}};
+const OPEN_DOCS=['Transportation document (Bill of Lading)','Evidence of clearing from customer','Customs Classification and Valuation Report (CCVR)','Quality Assurance Certificate'];
+const PS_DOCS=[{k:'inv',n:'Trade invoice or final commercial invoice',r:1},{k:'bl',n:'Bill of lading or airway bill',r:1},{k:'pl',n:'Packing list',r:1},{k:'org',n:'Certificate of origin',r:1},{k:'insp',n:'Third party inspection certificate (if applicable)',r:0},{k:'c12',n:'Customs entry form (C12)',r:1},{k:'oth',n:'Any other relevant document',r:0}];
+const CUSTOMER_SEEDS=(()=>{const ama={kind:'ind',cid:'GHA-123456789-0',cname:'Ama Mensah',acct:'1020130045678',srcCur:'GHS',txCur:'USD',demo:true};return {
+TF2026000231:Object.assign({tf:'TF2026000231',grp:'adv',type:'advance',purpose:'Advance payment',amt:4000,ben:{name:'Lumen Industrial Supplies (Demo)',country:'China',bank:'Harbour Trade Bank (Demo)',swift:'HTBKCNSH',acct:'•••• 4471'},items:[{d:'Industrial sewing machines',inv:6000,pay:4000}],at:'2026-09-14T10:30:00Z',stage:3,status:'Processing',ps:{docs:{},submitted:false,status:'Pending Documents'}},ama),
+TF2026000184:Object.assign({tf:'TF2026000184',grp:'out',type:'tuition',purpose:'Tuition Payment',amt:5000,ben:{name:'Northfield University',country:'United Kingdom',bank:'Albion Commercial Bank',swift:'ALBCGB2L',acct:'•••• 7786'},items:[],at:'2026-10-02T09:00:00Z',stage:2,status:'Under Review'},ama)}})();
+const GRP={out:'Outward Remittance',adv:'Advance Payment',open:'Open Account'};
+const LIMIT={out:10000,adv:200000,open:null};
+
+/* ==========================================================================
+   3. WORKFLOW
+   ========================================================================== */
+const FLOW={out:['submitted','docs','review','approval','processing','completed'],adv:['submitted','docs','review','processing','completed'],open:['submitted','docs','review','processing','completed']};
+const CAT={submitted:{l:'Submitted',c:''},docs:{l:'Documents Received',c:''},review:{l:'Under Review',c:'warn'},approval:{l:'Awaiting Approval',c:'warn'},processing:{l:'Processing',c:'info'},completed:{l:'Completed',c:'ok'},returned:{l:'Returned',c:'bad'}};
+const STAGE_L={submitted:'Request Submitted',docs:'Documents Received',review:'Under Review',approval:'Awaiting Approval',processing:'Processing',completed:'Completed'};
+const ORDER=['submitted','docs','review','approval','returned','processing','completed'];
+const PENDING=['submitted','docs','review','approval'];
+const DOC_ST=['Received','Under Review','Accepted in Prototype','Requires Correction'];
+
+/* ==========================================================================
+   4. HELPERS
+   ========================================================================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fm=n=>Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const tm=d=>{const t=new Date(d).getTime();return isNaN(t)?0:t};
+const fdt=d=>{const x=new Date(d);return !d||isNaN(x)?'Not recorded':x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})};
+const fdtt=d=>{const x=new Date(d);return !d||isNaN(x)?'Not recorded':x.toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})};
+const maskCard=c=>c?String(c).replace(/^(GHA-)\d{5}(\d{4})/,'$1•••••$2'):'';
+const maskTin=t=>t?String(t).slice(0,3)+'••••'+String(t).slice(-4):'';
+const maskAcct=a=>a?(String(a).indexOf('•')>=0?String(a):'•••• '+String(a).slice(-4)):'Not recorded';
+const maskId=(kind,id)=>kind==='co'?maskTin(id):maskCard(id);
+const kb=f=>!f||!f.size?'':f.size>=1048576?(f.size/1048576).toFixed(1)+' MB':Math.max(1,Math.round(f.size/1024))+' KB';
+const na=t=>`<span class="na">${t||'Not provided'}</span>`;
+const val=(x,t)=>x==null||x===''?na(t):esc(x);
+const badge=(cat,lg)=>`<span class="b ${CAT[cat]?CAT[cat].c:''}${lg?' lg':''}">${CAT[cat]?CAT[cat].l:esc(cat)}</span>`;
+const pill=(t,c)=>`<span class="b ${c||''}">${esc(t)}</span>`;
+const P={dash:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+file:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/>',ship:'<path d="M2 17l2.5 4h15l2.5-4H2z"/><path d="M5 17V10h14v7M9 10V5h6v5"/>',
+undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',check:'<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',tick:'<path d="M5 12l5 5 9-10"/>',
+refresh:'<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>',flag:'<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M21.5 20a6.5 6.5 0 0 0-4-6"/>',
+building:'<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-3h4v3"/>',pulse:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+sliders:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
+logout:'<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l5-5-5-5M15 12H3"/>',eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+eyeoff:'<path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+arrowL:'<path d="M19 12H5M11 18l-6-6 6-6"/>',chevR:'<path d="M9 6l6 6-6 6"/>',chevD:'<path d="M6 9l6 6 6-6"/>',bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>',
+rules:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>',chat:'<path d="M21 12a8 8 0 0 1-11.8 7L3 21l2-5.2A8 8 0 1 1 21 12z"/>',
+route:'<circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/>',money:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="3"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',send:'<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>'};
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]||''}</svg>`;
+
+/* ==========================================================================
+   5. ADMIN STORE
+   ========================================================================== */
+function adm(){const a=rd(ADK);let o=a&&a.v===1&&a.req&&Array.isArray(a.log)?a:(memAD||{v:1,req:{},log:[]});if(!Array.isArray(o.ledger))o.ledger=[];o.cfg=Object.assign({},CFG_DEFAULT,o.cfg||{});return o}
+function admSave(a){memAD=a;return wr(ADK,a)}
+function areq(a,tf){const q=a.req[tf]||(a.req[tf]={});q.docs=q.docs||{};q.ps=q.ps||{};q.comments=q.comments||[];q.payHist=q.payHist||[];return q}
+function A(tf){const q=adm().req[tf]||{};return {docs:q.docs||{},ps:q.ps||{},comments:q.comments||[],approvedAt:q.approvedAt||'',returned:q.returned||null,sent:q.sent||null,sentBack:q.sentBack||null,pay:q.pay||null,payHist:q.payHist||[]}}
+function logEv(ev){const a=adm();a.log.push(Object.assign({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),at:new Date().toISOString(),by:ADMIN.id},ev));if(a.log.length>3000)a.log=a.log.slice(-3000);admSave(a)}
+
+/* ==========================================================================
+   6. NORMALISE
+   ========================================================================== */
+function norm(key,r){
+  if(!r||typeof r!=='object')throw new Error('Not an object');
+  const grp=FLOW[r.grp]?r.grp:null;if(!grp)throw new Error('Unknown transfer group');
+  const fl=FLOW[grp];let st=parseInt(r.stage,10);
+  if(isNaN(st)){const m={'Submitted':0,'Documents Received':1,'Under Review':2,'Awaiting Approval':fl.indexOf('approval'),'Processing':fl.indexOf('processing'),'Completed':fl.length-1};st=m[r.status]!=null&&m[r.status]>=0?m[r.status]:0}
+  st=Math.max(0,Math.min(fl.length-1,st));
+  const k=fl[st];
+  return {tf:String(r.tf||key),r,grp,fl,st,key:k,cat:r.status==='Returned'?'returned':(k==='review'&&r.status==='Awaiting Approval')?'approval':k,kind:r.kind==='co'?'co':'ind',name:r.cname||'Name not recorded',cid:r.cid||'',amt:+r.amt||0,cur:r.txCur||'USD',at:r.at||'',items:Array.isArray(r.items)?r.items:[],ben:r.ben&&typeof r.ben==='object'?r.ben:{}};
+}
+let DATA={L:[],bad:[],byTf:{}};
+function load(){const o=rqAll(),L=[],bad=[];for(const k in o){try{L.push(norm(k,o[k]))}catch(e){bad.push({tf:k,why:e.message})}}L.sort((a,b)=>tm(b.at)-tm(a.at));const byTf={};L.forEach(v=>byTf[v.tf]=v);DATA={L,bad,byTf};CUST=buildCustomers()}
+
+/* Required initial documents */
+function reqDocs(v){const r=v.r,g=v.grp,nm=(x,i)=>' for item '+(i+1)+': '+(x.d||'untitled');
+  const L=[{n:'Signed Foreign Exchange Transaction Form'+(g==='open'?' or request letter':''),src:'form'}];
+  if(g==='out'&&v.kind==='co'&&r.type!=='personal')L.push({n:'Letter of authority on letterhead, signed per the account mandate'});
+  if(g!=='out'){v.items.forEach((x,i)=>L.push({n:(g==='open'?'Final invoice':'Pro forma invoice')+nm(x,i)}));v.items.forEach((x,i)=>L.push({n:'Import Declaration Form (IDF)'+nm(x,i)}));if(g==='open')OPEN_DOCS.forEach(n=>L.push({n}))}
+  else((TYPES[r.type]||{}).docs||[]).forEach(n=>L.push({n,src:n==='Ghana Card ID'?'id':''}));
+  if(/^Special rate/.test(r.rate||''))L.push({n:'Letter for Agreed Rate'});
+  return L.map((d,i)=>Object.assign(d,{k:'d'+i}))}
+/* docRows now treats a review recorded before the customer's resubmission as not reviewed */
+function docRows(v){const a=A(v.tf).docs,cut=tm(v.r.resubmittedAt||0);return reqDocs(v).map(d=>{const rv=a[d.k]||null,stale=!!(rv&&cut&&tm(rv.at)<cut);return Object.assign(d,{rv:stale?null:rv,stale})})}
+function docSum(v){const R=docRows(v),acc=R.filter(d=>d.rv&&d.rv.st==='Accepted in Prototype').length,cor=R.filter(d=>d.rv&&d.rv.st==='Requires Correction').length,rev=R.filter(d=>d.rv).length;return {R,n:R.length,acc,cor,rev,all:R.length>0&&acc===R.length}}
+function docsOutstanding(v){const s=docSum(v);if(v.cat==='completed')return false;if(s.cor)return true;return !['processing','completed'].includes(v.key)&&!s.all}
+function docBadge(v){const s=docSum(v);if(s.cor)return pill(s.cor+' correction'+(s.cor>1?'s':'')+' requested','bad');if(s.all)return pill('All accepted','ok');if(!s.rev)return pill('Not reviewed','');return pill(s.acc+' of '+s.n+' accepted','warn')}
+
+/* After shipment documents */
+function psRows(v){const ps=v.r.ps||{},docs=ps.docs||{},a=A(v.tf).ps;return PS_DOCS.map(d=>{const f=docs[d.k]||null,rv=a[d.k]||null,stale=!!(rv&&f&&rv.fileAt!==f.at);return Object.assign({},d,{f,rv:stale||!f?null:rv,stale})})}
+function psStatus(v){const ps=v.r.ps;if(!ps)return 'Not started';if(ps.submitted)return 'Documents Submitted';const q=PS_DOCS.filter(d=>d.r),docs=ps.docs||{},n=q.filter(d=>docs[d.k]).length;if(!Object.keys(docs).length)return 'Pending Documents';return n===q.length?'Complete':'Partially Uploaded'}
+const psPill=s=>pill(s,s==='Documents Submitted'?'ok':s==='Complete'?'info':s==='Partially Uploaded'?'warn':'');
+function psDue(v){const t=tm(v.at);return t?new Date(t+90*864e5).toISOString():''}
+function psArrival(v){const d=v.items.map(x=>x&&x.garr).filter(Boolean);return d.length?d.map(fdt).join(', '):''}
+function psReview(v){const R=psRows(v).filter(d=>d.f);if(!R.length)return {t:'Nothing to review',c:''};if(R.some(d=>d.rv&&d.rv.st==='Requires Correction'))return {t:'Correction requested',c:'bad'};if(R.every(d=>d.rv&&d.rv.st==='Accepted in Prototype'))return {t:'All accepted',c:'ok'};if(R.some(d=>d.rv))return {t:'Review in progress',c:'warn'};return {t:'Not reviewed',c:''}}
+
+/* ==========================================================================
+   7. CUSTOMER DIRECTORY
+   ========================================================================== */
+let CUST={};
+function buildCustomers(){const M={};
+  for(const k in REC){const r=REC[k],co=!!r.tin,id=co?r.tin:r.card,key=(co?'co:':'ind:')+id;
+    const c=M[key]||(M[key]={key,kind:co?'co':'ind',id,name:r.n,phone:'',email:'',dob:r.dob||'',addr:r.addr||'',accts:[],sg:null,fromReq:false});
+    if(!c.phone&&r.p)c.phone='0'+r.p;if(!c.email&&r.e)c.email=r.e;c.accts.push({no:k,t:r.t,cur:r.cur,bal:r.bal,fat:r.fat||''});if(r.sg)c.sg=r.sg}
+  DATA.L.forEach(v=>{const key=v.kind+':'+v.cid;if(v.cid&&!M[key])M[key]={key,kind:v.kind,id:v.cid,name:v.name,phone:'',email:'',accts:[],sg:null,fromReq:true}});
+  return M}
+const custOf=v=>CUST[v.kind+':'+v.cid]||null;
+const reqsOf=c=>DATA.L.filter(v=>v.kind+':'+v.cid===c.key);
+function mandateFor(cid){const R=rd(MSK);if(!R||!Array.isArray(R.sigs))return null;const a=REC[R.acct];return a&&a.tin===cid?R:null}
+function consentInfo(v){if(v.kind!=='co')return null;const R=mandateFor(v.cid);if(!R)return {t:'No session found',c:'',R:null,done:0,n:0};const n=R.sigs.length,done=R.sigs.filter(g=>g.st==='done'&&g.cons).length,sig=R.sigs.filter(g=>g.sig).length;return {t:done===n?'Consent given ('+done+' of '+n+')':done+' of '+n+' consented',c:done===n?'ok':'warn',st:sig===n?'Signatures saved ('+sig+' of '+n+')':sig+' of '+n+' signatures saved',sc:sig===n?'ok':'warn',R,done,n}}
+
+/* ==========================================================================
+   8. SESSION
+   ========================================================================== */
+function session(){try{const v=sessionStorage.getItem(SSK)||localStorage.getItem(SSK);return v?JSON.parse(v):memS}catch(e){return memS}}
+function setSession(keep,role){ADMIN=ROLES[role]||ROLES.ops;const s={user:ADMIN.id,role:role,at:new Date().toISOString(),keep:!!keep};memS=s;try{(keep?localStorage:sessionStorage).setItem(SSK,JSON.stringify(s))}catch(e){}}
+function clearSession(){memS=null;try{sessionStorage.removeItem(SSK);localStorage.removeItem(SSK)}catch(e){}}
+
+/* ==========================================================================
+   9. UI STATE, ROUTING
+   ========================================================================== */
+const UI={};const NAVC={};let NAVOPEN=false;
+const ui=id=>UI[id]||(UI[id]={q:'',kind:'',grp:'',cat:'',x:'',ps:'',sort:'at',dir:-1,pg:1});
+function parse(){const h=(location.hash||'').replace(/^#\/?/,''),[path,qs]=h.split('?'),p=path.split('/').map(decodeURIComponent),q={};(qs||'').split('&').forEach(x=>{if(x){const[a,b]=x.split('=');q[decodeURIComponent(a)]=decodeURIComponent(b||'')}});return {p,q}}
+function nav(h){if(location.hash===h)render();else location.hash=h}
+
+const NAV=[{g:'Main',items:[['dashboard','Dashboard','dash'],['track','Track Applications','search'],['pending','Pending Requests','clock'],['all','All Transfer Requests','list']]},
+{g:'Processing',items:[['docs','Documents Review','file'],['ps','After Shipment Documents','ship'],['returned','Returned Requests','undo'],['approved','Approved Requests','check'],['processing','Processing Requests','refresh'],['completed','Completed Transfers','flag']]},
+{g:'Management',items:[['customers','Customer Directory','users'],['companies','Company Applications','building'],['activity','Activity Log','pulse']]},
+{g:'System',items:[['settings','Settings','sliders']]}];
+const NAV_PAY=[{g:'Main',items:[['dashboard','Dashboard','dash'],['queue','Approval Queue','clock'],['track','Track Applications','search']]},
+{g:'Payments',items:[['sent','Released Payments','send'],['processing','Processing Requests','refresh'],['completed','Completed Transfers','flag'],['ledger','Payments Ledger','money']]},
+{g:'Management',items:[['activity','Activity Log','pulse']]},
+{g:'System',items:[['settings','Settings','sliders']]}];
+const PAY_DENY=['pending','all','docs','ps','returned','approved','customers','companies','customer'];
+const navFor=()=>isPay()?NAV_PAY:NAV;
+function navCount(id){const L=DATA.L;switch(id){case 'queue':return L.filter(v=>v.cat==='approval').length;case 'sent':return L.filter(v=>{const p=A(v.tf).pay;return p&&p.st!=='done'}).length;case 'pending':return L.filter(v=>PENDING.includes(v.cat)).length;case 'docs':return L.filter(docsOutstanding).length;case 'ps':return L.filter(v=>v.grp==='adv'&&v.r.ps&&!v.r.ps.submitted).length;case 'returned':return L.filter(v=>v.cat==='returned').length;default:return null}}
+function shell(active,html){
+  return `<aside class="side${NAVOPEN?' open':''}" id="side" aria-label="Main navigation"><div class="brand"><div class="logo-tile" role="img" aria-label="GCB logo"></div><div class="brand-t">FXFlow Admin Portal</div><span class="env">Prototype environment</span><div style="margin-top:8px"><span class="b ${isPay()?'info':'warn'}">${ADMIN.role}</span></div></div>
+  <nav class="nav">${navFor().map(g=>{const open=NAVC[g.g]!==false;return `<div><button class="nhead" data-navg="${g.g}" aria-expanded="${open}">${g.g}${ic('chevD')}</button>${open?g.items.map(([id,l,i])=>{const c=navCount(id);return `<button class="nitem${active===id?' on':''}" data-go="#/${id}"${active===id?' aria-current="page"':''}>${ic(i)}<span>${l}</span>${c?`<span class="ncount">${c}</span>`:''}</button>`}).join(''):''}</div>`}).join('')}</nav>
+  <div class="me"><div class="me-n">${ADMIN.name}</div><div class="me-r">${ADMIN.id} · ${ADMIN.role}</div><button class="logout" data-act="logout">${ic('logout')} Logout</button></div></aside>
+  <div class="scrim${NAVOPEN?' open':''}" data-act="closenav"></div>
+  <main class="main" id="main"><div class="topbar"><button class="mb" data-act="opennav" aria-label="Open navigation" aria-expanded="${NAVOPEN}">${ic('menu')}</button><span class="tlogo" aria-hidden="true"></span><b>FXFlow Admin</b><span class="env" style="margin-left:auto">Prototype</span></div><div class="wrap">${!storeOK?`<div class="alert warn" style="margin-bottom:16px">Browser storage isn't available here, so changes last for this page session only.</div>`:''}${html}</div></main>`}
+const head=(t,d,extra)=>`<header class="phead"><h1>${t}</h1>${d?`<p>${d}</p>`:''}${extra||''}</header>`;
+
+function render(){
+  closeModal(true);
+  const ss=session();if(!ss){renderLogin();return}
+  ADMIN=ROLES[ss.role]||ROLES.ops;
+  document.body.className='';load();
+  const {p,q}=parse();let pg=p[0]||'dashboard',html='',active=pg;
+  try{
+    if(pg==='req'){html=detail(p[1]||'',p[2]||'customer',q.from||'all');active=q.from&&q.from.indexOf('customer')===0?'customers':(q.from||'all')}
+    else if(pg==='customer'&&!isPay()){html=customerPage(p[1]||'');active='customers'}
+    else if(isPay()&&PAY_DENY.indexOf(pg)>=0){html=head('Not available for your role','')+`<div class="card"><div class="empty"><b>This page belongs to the Operations Reviewer.</b><button class="btn" data-go="#/dashboard">Go to Dashboard</button></div></div>`;active=''}
+    else if(pg==='dashboard')html=isPay()?payDashboard():dashboard();
+    else if(pg==='ledger')html=ledgerPage();
+    else if(pg==='activity')html=activityPage();
+    else if(pg==='settings')html=settingsPage();
+    else if(pg==='customers')html=customersPage();
+    else if(LISTS[pg])html=listPage(pg);
+    else{html=head('Page not found','')+`<div class="card"><div class="empty"><b>This page doesn't exist.</b><button class="btn" data-go="#/dashboard">Go to Dashboard</button></div></div>`;active=''}
+  }catch(e){console.error(e);html=head('Something went wrong','')+`<div class="card"><div class="alert bad">This view couldn't be displayed: ${esc(e.message)}</div></div>`}
+  $('#root').innerHTML=shell(active,html);
+  const m=$('#main');if(m&&!render.keepScroll)window.scrollTo(0,0);render.keepScroll=false;
+}
+
+/* ==========================================================================
+   10. SIGN IN
+   ========================================================================== */
+function renderLogin(err,user){document.body.className='login-body';
+  $('#root').innerHTML=`<main class="login-wrap"><form class="login-card" id="loginForm" novalidate>
+  <div class="logo-tile lg" role="img" aria-label="GCB logo"></div>
+  <h1>FXFlow Admin Portal</h1><p class="lsub">Sign in to access foreign transfer operations.</p><span class="env">Prototype environment</span>
+  ${err?`<div class="alert bad" role="alert" style="margin-top:18px;text-align:left">${err}</div>`:''}
+  <label class="fl"><span>Email</span><input id="lu" autocomplete="username" placeholder="Enter your username or email" value="${esc(user||'')}" required></label>
+  <div class="fl"><div class="flrow"><label for="lp">Password</label><button type="button" class="link" data-act="forgot">Forgot password?</button></div>
+  <div class="pw"><input id="lp" type="password" autocomplete="current-password" placeholder="Enter your password" required><button type="button" class="eye" data-act="eye" aria-label="Show password" aria-pressed="false">${ic('eye')}</button></div></div>
+  <label class="chk"><input type="checkbox" id="lk"> Keep me signed in</label>
+  <button class="btn gold full" type="submit">${ic('logout')} Sign In</button>
+  <div class="demo"><b>Demo sign in (prototype only)</b><br><b>Operations Reviewer:</b> admin@fxflow.demo or fxadmin, password FXFlowDemo2026<br><b>Payments Officer (SWIFT):</b> payments@fxflow.demo or fxpay, password FXPayDemo2026<br>This is not real authentication and is not connected to any bank system or the SWIFT network. Never enter a real bank password here.</div>
+  <a class="home-link" href="Fxflowofficial.html">${ic('arrowL')} Back to Home</a></form></main>`;
+  const u=$('#lu');if(u&&!user)u.focus();else{const pw=$('#lp');if(pw)pw.focus()}}
+function doLogin(){const u=($('#lu').value||'').trim().toLowerCase(),pw=$('#lp').value||'',keep=$('#lk').checked;
+  if(!u||!pw)return renderLogin('Enter your email or username and your password.',u);
+  const role=Object.keys(ROLES).find(k=>ROLES[k].users.indexOf(u)>=0&&ROLES[k].pass===pw);
+  if(!role)return renderLogin('That email or password doesn\'t match a demo account. Check the demo details below.',u);
+  setSession(keep,role);logEv({action:'Demo administrator signed in'});if(!location.hash||location.hash==='#/')location.hash='#/dashboard';else render()}
+
+/* ==========================================================================
+   11. DASHBOARD
+   ========================================================================== */
+function dashboard(){const L=DATA.L,c=k=>L.filter(v=>v.cat===k).length;
+  const S=[['Total Transfer Requests',L.length,'','#/all','All saved requests in this browser'],
+  ['Pending Review',L.filter(v=>['submitted','docs','review'].includes(v.cat)).length,'warn','#/pending','Submitted, documents received or under review'],
+  ['Documents Outstanding',L.filter(docsOutstanding).length,'bad','#/docs','Initial documents not yet accepted, or a correction requested'],
+  ['Awaiting Approval',c('approval'),'warn','#/pending?cat=approval','Sent to the Payments Officer for approval'],
+  ['Processing',c('processing'),'info','#/processing','Payment released via SWIFT (simulated)'],
+  ['Completed',c('completed'),'ok','#/completed','Marked completed in the prototype'],
+  ['Returned Requests',c('returned'),'bad','#/returned','Sent back to the customer for corrections'],
+  ['Awaiting After Shipment Documents',L.filter(v=>v.grp==='adv'&&v.r.ps&&!v.r.ps.submitted).length,'warn','#/ps','Advance Payment requests not yet submitted']];
+  const rec=L.slice(0,6);
+  return head('Welcome back, '+ADMIN.name,'Monitor and manage foreign transfer requests, customer documents, and transaction processing.')+
+  `<div class="card"><div class="ctitle">${ic('bolt')}Quick Actions</div><div class="qa">${[['search','Search Transfer Request','#/track?focus=1'],['clock','Review Pending Requests','#/pending'],['file','Review Uploaded Documents','#/docs'],['ship','Review After Shipment Documents','#/ps'],['undo','View Returned Requests','#/returned'],['pulse','View Recent Activity','#/activity']].map(([i,l,h])=>`<button data-go="${h}">${ic(i)}<span>${l}</span><span class="chev">${ic('chevR')}</span></button>`).join('')}</div></div>
+  <div class="sec-label">Foreign transfer overview</div>
+  <div class="stats">${S.map(([l,n,c,h,d])=>`<button class="stat ${c}" data-go="${h}"><div class="stat-l">${l}</div><div class="stat-v">${n}</div><div class="stat-h">${d}</div></button>`).join('')}</div>
+  <p class="small muted" style="margin:10px 2px 0">Status cards count each request once, by its current status. Documents Outstanding and After Shipment are separate measures, so a request can also appear there.</p>
+  <div class="card" style="margin-top:20px"><div class="ctitle">${ic('list')}Recent Transfer Requests<span class="right"><button class="btn sec sm" data-go="#/all">View all</button></span></div>
+  ${rec.length?table(rec,['tf','name','kind','grp','src','amt','at','status','act'],null,'dashboard'):emptyNoData()}</div>`}
+function emptyNoData(){return `<div class="empty"><b>No transfer requests yet</b>Requests appear here once the customer portal saves them in this browser. Open <a href="Fxflowofficial.html">the customer portal</a> from the same folder and address, or add its built in demo requests from <button class="link" data-go="#/settings">Settings</button>.</div>`}
+
+/* ==========================================================================
+   12. LISTS
+   ========================================================================== */
+const COLS={
+tf:{h:'TF Number',s:v=>v.tf,c:v=>`<span class="tfn">${esc(v.tf)}</span>${v.r.demo?' <span class="tag">Demo</span>':''}`},
+name:{h:'Customer or Company',s:v=>v.name.toLowerCase(),c:v=>`<b>${esc(v.name)}</b><div class="small muted">${esc(maskId(v.kind,v.cid))}</div>`},
+kind:{h:'Customer Type',s:v=>v.kind,c:v=>v.kind==='co'?'Company':'Individual'},
+grp:{h:'Transfer Group',s:v=>v.grp,c:v=>esc(GRP[v.grp])},
+src:{h:'Source Account',s:v=>String(v.r.acct||''),c:v=>`${esc(maskAcct(v.r.acct))} <span class="muted">${esc(v.r.srcCur||'')}</span>`},
+amt:{h:'Transfer Amount',n:1,s:v=>v.amt,c:v=>`<b>${esc(v.cur)} ${fm(v.amt)}</b>`},
+at:{h:'Submission Date',s:v=>tm(v.at),c:v=>fdt(v.at)},
+status:{h:'Current Status',s:v=>ORDER.indexOf(v.cat),c:v=>badge(v.cat)},
+docst:{h:'Document Status',s:v=>{const s=docSum(v);return s.cor?-1:s.acc/(s.n||1)},c:docBadge},
+tin:{h:'Company TIN',s:v=>v.cid,c:v=>esc(maskTin(v.cid))},
+consent:{h:'Consent Status',s:v=>{const c=consentInfo(v);return c?c.done:0},c:v=>{const c=consentInfo(v);return c?pill(c.t,c.c):''}},
+sig:{h:'Signatory Status',s:v=>{const c=consentInfo(v);return c&&c.R?c.R.sigs.filter(g=>g.sig).length:0},c:v=>{const c=consentInfo(v);return c&&c.R?pill(c.st,c.sc):pill('No session found','')}},
+dreq:{h:'Required',n:1,s:v=>docSum(v).n,c:v=>docSum(v).n},
+dacc:{h:'Accepted',n:1,s:v=>docSum(v).acc,c:v=>docSum(v).acc},
+dmiss:{h:'Not Yet Accepted',s:v=>docSum(v).n-docSum(v).acc,c:v=>{const R=docSum(v).R.filter(d=>!d.rv||d.rv.st!=='Accepted in Prototype');return R.length?`<span class="small">${R.slice(0,2).map(d=>esc(d.n)).join('<br>')}${R.length>2?'<br><span class="muted">and '+(R.length-2)+' more</span>':''}</span>`:'<span class="muted">None</span>'}},
+rret:{h:'Reason',s:v=>'',c:v=>{const r=A(v.tf).returned;return r&&r.reason?`<span class="small">${esc(r.reason)}</span>`:na('Not recorded')}},
+rat:{h:'Returned On',s:v=>tm((A(v.tf).returned||{}).at),c:v=>fdt((A(v.tf).returned||{}).at)},
+appr:{h:'Approval Recorded',s:v=>tm(A(v.tf).approvedAt),c:v=>fdtt(A(v.tf).approvedAt)},
+orig:{h:'Transfer Status',s:v=>ORDER.indexOf(v.cat),c:v=>badge(v.cat)},
+arr:{h:'Approx. Arrival',s:v=>psArrival(v),c:v=>psArrival(v)?esc(psArrival(v)):na('Not recorded')},
+due:{h:'Documents Due By',s:v=>tm(psDue(v)),c:v=>fdt(psDue(v))},
+psst:{h:'Upload Status',s:v=>psStatus(v),c:v=>psPill(psStatus(v))},
+psrv:{h:'Review',s:v=>psReview(v).t,c:v=>{const r=psReview(v);return pill(r.t,r.c)}},
+psup:{h:'Uploaded',s:v=>psRows(v).filter(d=>d.f).length,c:v=>{const n=psRows(v).filter(d=>d.f).length;return n+' of '+PS_DOCS.length}},
+psmiss:{h:'Missing (Required)',s:v=>psRows(v).filter(d=>d.r&&!d.f).length,c:v=>{const R=psRows(v).filter(d=>d.r&&!d.f);return R.length?`<span class="small">${R.slice(0,2).map(d=>esc(d.n)).join('<br>')}${R.length>2?'<br><span class="muted">and '+(R.length-2)+' more</span>':''}</span>`:'<span class="muted">None</span>'}},
+pslast:{h:'Last Upload',s:v=>Math.max(0,...psRows(v).filter(d=>d.f).map(d=>tm(d.f.at))),c:v=>{const t=Math.max(0,...psRows(v).filter(d=>d.f).map(d=>tm(d.f.at)));return t?fdt(t):na('None')}},
+sentby:{h:'Sent By',s:v=>(A(v.tf).sent||{}).by||'',c:v=>{const x=A(v.tf).sent;return x?esc(x.by):na('Not recorded')}},
+sentat:{h:'Sent for Approval',s:v=>tm((A(v.tf).sent||{}).at),c:v=>fdtt((A(v.tf).sent||{}).at)},
+swref:{h:'Sender Ref',s:v=>(A(v.tf).pay||{}).ref||'',c:v=>esc((A(v.tf).pay||{}).ref||'')},
+uetr:{h:'UETR',s:v=>(A(v.tf).pay||{}).uetr||'',c:v=>`<span style="font-family:monospace;font-size:11px">${esc(((A(v.tf).pay||{}).uetr||'').slice(0,18))}…</span>`},
+payst:{h:'Payment Status',s:v=>(A(v.tf).pay||{}).st||'',c:v=>{const p=A(v.tf).pay;return p?pill(PAYST[p.st][0],PAYST[p.st][1]):''}},
+relat:{h:'Released',s:v=>tm((A(v.tf).pay||{}).at),c:v=>fdtt((A(v.tf).pay||{}).at)},
+act:{h:'Action',c:v=>`<button class="btn sm" data-open="${esc(v.tf)}">View</button>`}};
+const LISTS={
+track:{t:'Track Applications',d:'Search any saved transfer request by TF number, customer, company, identifier, transfer group or status.',f:()=>true,cols:['tf','name','kind','grp','amt','at','status','act'],flt:['kind','grp','cat']},
+all:{t:'All Transfer Requests',d:'Every foreign transfer request the customer portal has saved in this browser.',f:()=>true,cols:['tf','name','kind','grp','src','amt','at','status','act'],flt:['kind','grp','cat']},
+pending:{t:'Pending Requests',d:'Requests waiting for the next administrative action: Submitted, Documents Received, Under Review or Awaiting Approval.',f:v=>PENDING.includes(v.cat),cols:['tf','name','kind','grp','src','amt','at','docst','status','act'],flt:['kind','grp','cat'],cats:PENDING},
+docs:{t:'Documents Review',d:'Initial supporting documents required for each open request, and how far their review has got.',f:v=>v.cat!=='completed',cols:['tf','name','grp','dreq','dacc','dmiss','docst','at','act'],flt:['kind','grp','x']},
+ps:{t:'After Shipment Documents',d:'Advance Payment requests only. Documents are saved against the original TF number; no new transfer is created.',f:v=>v.grp==='adv',cols:['tf','name','orig','arr','due','psst','psup','psmiss','psrv','pslast','act'],flt:['kind','ps']},
+returned:{t:'Returned Requests',d:'Requests sent back for corrections in the admin portal.',f:v=>v.cat==='returned',cols:['tf','name','grp','amt','rat','rret','act'],flt:['kind','grp']},
+approved:{t:'Approved Requests',d:'Requests the Payments Officer approved and released (simulated, not a real bank approval).',f:v=>!!A(v.tf).approvedAt,cols:['tf','name','grp','amt','appr','status','act'],flt:['kind','grp']},
+processing:{t:'Processing Requests',d:'Requests currently at the Processing stage.',f:v=>v.cat==='processing',cols:['tf','name','kind','grp','src','amt','at','status','act'],flt:['kind','grp']},
+completed:{t:'Completed Transfers',d:'Requests marked completed in the prototype. No real transfer or SWIFT message is sent.',f:v=>v.cat==='completed',cols:['tf','name','kind','grp','amt','at','status','act'],flt:['kind','grp']},
+queue:{t:'Approval Queue',d:'Requests the Operations Reviewer has checked and sent for approval. Approve and release the payment, or send it back.',f:v=>v.cat==='approval',cols:['tf','name','grp','src','amt','sentby','sentat','docst','act'],flt:['kind','grp']},
+sent:{t:'Released Payments',d:'Payments released to the intermediary bank over SWIFT (simulated), with their reference and progress.',f:v=>!!A(v.tf).pay,cols:['tf','name','amt','swref','uetr','relat','payst','act'],flt:['kind','grp']},
+companies:{t:'Company Applications',d:'Requests submitted through the company workflow, with their consent and signatory status.',f:v=>v.kind==='co',cols:['tf','name','tin','grp','src','amt','consent','sig','docst','status','act'],flt:['grp','cat']}};
+function matchQ(v,q){if(!q)return true;q=q.toLowerCase().replace(/\s+/g,' ').trim();const c=custOf(v),hay=[v.tf,v.name,v.cid,v.r.purpose,GRP[v.grp],v.ben.name,c&&c.email,CAT[v.cat].l].join(' ').toLowerCase();return q.split(' ').every(t=>hay.indexOf(t)>=0)}
+function rowsFor(id){const L=LISTS[id],u=ui(id);return DATA.L.filter(v=>{try{return L.f(v)}catch(e){return false}}).filter(v=>matchQ(v,u.q)&&(!u.kind||v.kind===u.kind)&&(!u.grp||v.grp===u.grp)&&(!u.cat||(u.cat==='pendingall'?PENDING.includes(v.cat):v.cat===u.cat))&&(!u.x||(u.x==='out'?docsOutstanding(v):u.x==='cor'?docSum(v).cor>0:u.x==='acc'?docSum(v).all:true))&&(!u.ps||psStatus(v)===u.ps))}
+function listPage(id){const L=LISTS[id],u=ui(id),{q}=parse();
+  if(q.cat!=null&&q.cat!==u._cat){u.cat=q.cat;u._cat=q.cat;u.pg=1}
+  if(q.q!=null&&q.q!==u._q){u.q=q.q;u._q=q.q;u.pg=1}
+  const sel=(k,l,opts)=>`<label class="f"><span>${l}</span><select data-u="${k}" data-list="${id}">${opts.map(([v,t])=>`<option value="${v}"${(u[k]||'')===v?' selected':''}>${t}</option>`).join('')}</select></label>`;
+  const cats=(L.cats||ORDER).map(k=>[k,CAT[k].l]);
+  const F={kind:()=>sel('kind','Customer type',[['','All types'],['ind','Individual'],['co','Company']]),grp:()=>sel('grp','Transfer group',[['','All groups'],['out',GRP.out],['adv',GRP.adv],['open',GRP.open]]),
+    cat:()=>sel('cat','Status',[['','All statuses'],...(L.cats?[]:[['pendingall','All pending']]),...cats]),x:()=>sel('x','Document review',[['','All'],['out','Outstanding'],['cor','Correction requested'],['acc','All accepted']]),
+    ps:()=>sel('ps','Upload status',[['','All'],['Pending Documents','Pending Documents'],['Partially Uploaded','Partially Uploaded'],['Complete','Complete'],['Documents Submitted','Documents Submitted']])};
+  const ph=id==='track'?'TF number, customer, company, Ghana Card or TIN':'Search requests';
+  return head(L.t,L.d)+(id==='ps'?`<div class="alert info" style="margin-bottom:20px"><b>Important Notice shown to customers:</b> Please upload your after shipment documents only after your transfer has been successfully completed. Do not upload these documents while your transfer is still being processed or pending confirmation.</div>`:'')+
+  `<section class="card"><div class="filters" role="search"><label class="f grow"><span>Search</span><input type="search" data-u="q" data-list="${id}" value="${esc(u.q)}" placeholder="${ph}" aria-label="Search" ${id==='track'?'id="trackq"':''}></label>${L.flt.map(k=>F[k]()).join('')}${(u.q||u.kind||u.grp||u.cat||u.x||u.ps)?`<button class="btn sec" data-act="clearf" data-list="${id}">Clear</button>`:''}</div>
+  <div id="results">${results(id)}</div></section>`}
+function results(id){const L=LISTS[id],u=ui(id);let R=rowsFor(id);
+  const base=DATA.L.filter(v=>{try{return L.f(v)}catch(e){return false}}).length;
+  if(!R.length){const tfq=(u.q||'').toUpperCase().replace(/\s/g,'');
+    if(!DATA.L.length)return emptyNoData();
+    if(/^TF\d{6,}$/.test(tfq)&&!DATA.byTf[tfq])return `<div class="empty"><b>No request found with TF number ${esc(tfq)}</b>Check the number. Only requests saved in this browser can be found.</div>`;
+    if(!base)return `<div class="empty"><b>Nothing here yet</b>${esc(EMPTY[id]||'No matching requests.')}</div>`;
+    return `<div class="empty"><b>No requests match these filters</b>Change the search or <button class="link" data-act="clearf" data-list="${id}">clear the filters</button>.</div>`}
+  const col=COLS[u.sort];if(col&&col.s)R=R.slice().sort((a,b)=>{const x=col.s(a),y=col.s(b);return (x>y?1:x<y?-1:0)*u.dir});
+  const per=10,pages=Math.max(1,Math.ceil(R.length/per));u.pg=Math.min(Math.max(1,u.pg),pages);const S=R.slice((u.pg-1)*per,u.pg*per);
+  return table(S,L.cols,id)+`<div class="pager"><span class="small muted">Showing ${(u.pg-1)*per+1} to ${(u.pg-1)*per+S.length} of ${R.length} request${R.length>1?'s':''}${R.length<base?' (filtered from '+base+')':''}</span>${pages>1?`<span class="actbar"><button class="btn sec sm" data-pg="${u.pg-1}" data-list="${id}"${u.pg<=1?' disabled':''}>Previous</button><span class="small">Page ${u.pg} of ${pages}</span><button class="btn sec sm" data-pg="${u.pg+1}" data-list="${id}"${u.pg>=pages?' disabled':''}>Next</button></span>`:''}</div>`}
+const EMPTY={pending:'No requests are waiting for review.',returned:'No requests have been returned for corrections.',approved:'No approvals have been recorded in the admin portal yet.',processing:'No requests are at the Processing stage.',completed:'No requests have been marked completed.',companies:'No requests have been submitted through the company workflow yet.',ps:'No Advance Payment requests are saved in this browser.',docs:'Every saved request is completed.'};
+function table(R,cols,listId,from){const u=listId?ui(listId):null;from=from||listId;
+  return `<div class="tw"><table><thead><tr>${cols.map(k=>{const c=COLS[k],on=u&&u.sort===k;return `<th class="${c.n?'n':''}" scope="col"${on?` aria-sort="${u.dir>0?'ascending':'descending'}"`:''}>${listId&&c.s?`<button class="sortb" data-sort="${k}" data-list="${listId}">${c.h}${on?`<span class="arrow">${u.dir>0?'▲':'▼'}</span>`:''}</button>`:`<span class="th">${c.h}</span>`}</th>`}).join('')}</tr></thead>
+  <tbody>${R.map(v=>{let cells;try{cells=cols.map(k=>`<td class="${COLS[k].n?'n':''}">${COLS[k].c(v)}</td>`).join('')}catch(e){cells=`<td colspan="${cols.length}"><span class="alert bad">This record couldn't be displayed.</span></td>`}return `<tr data-row="${esc(v.tf)}" data-from="${esc(from||'all')}">${cells}</tr>`}).join('')}</tbody></table></div>`}
+
+/* ==========================================================================
+   13. APPLICATION DETAIL
+   ========================================================================== */
+const TABS=[['customer','Customer Details','user'],['transfer','Transfer Details','money'],['documents','Documents','file'],['review','Review & Rules','rules'],['activity','Activity','clock'],['tracking','Tracking','route'],['payment','SWIFT Payment','send'],['comments','Comments','chat']];
+const FROM_L={queue:'Approval Queue',sent:'Released Payments',ledger:'Payments Ledger',all:'All Transfer Requests',pending:'Pending Requests',track:'Track Applications',docs:'Documents Review',ps:'After Shipment Documents',returned:'Returned Requests',approved:'Approved Requests',processing:'Processing Requests',completed:'Completed Transfers',companies:'Company Applications',dashboard:'Dashboard',activity:'Activity Log'};
+function backHref(from){if(from.indexOf('customer:')===0)return '#/customer/'+encodeURIComponent(from.slice(9));return '#/'+(FROM_L[from]?from:'all')}
+function backLabel(from){return from.indexOf('customer:')===0?'Customer Profile':(FROM_L[from]||'All Transfer Requests')}
+function detail(tf,tab,from){const v=DATA.byTf[tf];
+  if(!v)return `<a class="back" href="${backHref(from)}">${ic('arrowL')} Back to ${backLabel(from)}</a>`+`<div class="card" style="margin-top:16px"><div class="empty"><b>No request found with TF number ${esc(tf)}</b>It may have been removed, or it was saved in another browser.</div></div>`;
+  if(!TABS.some(t=>t[0]===tab))tab='customer';
+  const s=docSum(v),cats=[['Transfer Amount',esc(v.cur)+' '+fm(v.amt)],['Transfer Group',GRP[v.grp]],['Customer Type',v.kind==='co'?'Company':'Individual'],['Document Review',s.acc+' of '+s.n+' accepted'],['Submission Date',fdt(v.at)],['Current Stage',CAT[v.cat].l]];
+  const T={customer:tabCustomer,transfer:tabTransfer,documents:tabDocs,review:tabReview,activity:tabActivity,tracking:tabTracking,payment:tabPayment,comments:tabComments}[tab];
+  return `<div class="dhead"><a class="back" href="${backHref(from)}">${ic('arrowL')} Back to ${backLabel(from)}</a>
+  <div class="dtitle"><h1>Application ${esc(v.tf)}</h1>${badge(v.cat,1)}${v.r.resub?`<span class="b warn">Resubmission ${v.r.resub}</span>`:''}${v.r.demo?'<span class="tag">Demo record</span>':''}</div>
+  <div class="dmeta"><span><b>${esc(v.name)}</b></span><span>${GRP[v.grp]}${v.r.purpose?' · '+esc(v.r.purpose):''}</span><span>Submitted ${fdt(v.at)}</span><span>Amount: <b>${esc(v.cur)} ${fm(v.amt)}</b></span></div></div>
+  <div class="stats">${cats.map(([l,x])=>`<div class="stat sm"><div class="stat-l">${l}</div><div class="stat-v">${x}</div></div>`).join('')}</div>
+  ${actionsCard(v)}
+  <div class="card" style="margin-top:20px"><div class="tabs" role="tablist">${TABS.map(([k,l,i])=>`<button class="tab${k===tab?' on':''}" role="tab" aria-selected="${k===tab}" data-go="#/req/${encodeURIComponent(v.tf)}/${k}?from=${encodeURIComponent(from)}">${ic(i)}${l}</button>`).join('')}</div>
+  <div role="tabpanel">${T(v)}</div></div>`}
+
+function kv(rows){return `<div class="kv">${rows.map(([k,x])=>`<div>${k}</div><div>${x}</div>`).join('')}</div>`}
+function tabCustomer(v){const c=custOf(v),r=v.r;
+  if(v.kind==='co'){const ci=consentInfo(v);
+    return `<div class="grid2"><div><div class="ctitle">${ic('building')}Company Information</div>${kv([['Company name',esc(v.name)],['Company TIN',val(v.cid)],['Customer type','Company'],['Telephone',val(c&&c.phone)],['Email',val(c&&c.email)],['Company verification','TIN matched to a company record in the customer portal (simulated check, not the Ghana Revenue Authority)']])}
+    ${c&&c.accts.length?`<div class="sub-h">Company accounts</div>${acctTable(c.accts,r.acct)}`:''}</div>
+    <div><div class="ctitle">${ic('users')}Signatories, Consent and Signatures</div>${sigBlock(v,c,ci)}</div></div>`}
+  return `<div class="grid2"><div><div class="ctitle">${ic('user')}Customer Information</div>${kv([['Full name',esc(v.name)],['Customer type','Individual'],['Ghana Card number',val(v.cid)],['Date of birth',c&&c.dob?fdt(c.dob):na()],['Telephone',val(c&&c.phone)],['Email',val(c&&c.email)],['Address',val(c&&c.addr)],['Ghana Card verification',`<span class="na">Not recorded in the saved request.</span> <span class="small muted" style="display:block;font-weight:400">The customer flow requires a Ghana Card match and selfie before an account can be chosen.</span>`]])}</div>
+  <div><div class="ctitle">${ic('money')}Accounts on record</div>${c&&c.accts.length?acctTable(c.accts,r.acct):`<div class="alert">${c&&c.fromReq?'This customer exists only in the saved request. No matching customer record was found.':'No accounts found for this customer.'}</div>`}
+  ${c?`<p style="margin-top:14px"><button class="btn sec sm" data-go="#/customer/${encodeURIComponent(c.key)}">Open customer profile</button></p>`:''}</div></div>`}
+function acctTable(accts,cur){return `<div class="tw"><table style="min-width:420px"><thead><tr><th><span class="th">Account</span></th><th><span class="th">Type</span></th><th class="n"><span class="th">Sample balance</span></th></tr></thead><tbody>${accts.map(a=>`<tr><td>${esc(maskAcct(a.no))}${a.no===cur?' <span class="tag">Used</span>':''}</td><td>${esc(a.t)} · ${esc(a.cur)}${a.fat?`<div class="small muted">${esc(a.fat)}</div>`:''}</td><td class="n">${esc(a.cur)} ${fm(a.bal)}</td></tr>`).join('')}</tbody></table></div><p class="small muted" style="margin-top:8px">Balances are the customer portal's sample figures.</p>`}
+function sigBlock(v,c,ci){const R=ci&&ci.R;
+  if(!R)return `<div class="alert">${c&&c.sg?'The account mandate lists '+c.sg.length+' signatories, but no signatory verification session was found in this browser for this company.':'No signatory records were found.'}</div>${c&&c.sg?`<div class="sub-h">Mandate on record</div>${c.sg.map((g,i)=>kv([['Signatory '+(i+1),esc(maskCard(g.card))]])).join('')}`:''}`;
+  return `<div class="alert info small" style="margin-bottom:12px">The customer portal keeps one signatory session per browser, for the company that started it most recently. It is not linked to a TF number, so this shows the latest session for ${esc(v.name)}.</div>${pill(ci.t,ci.c)} ${pill(ci.st,ci.sc)}
+  ${R.sigs.map((g,i)=>`<div class="sub-h">Signatory ${i+1}</div>${kv([['Ghana Card',esc(maskCard(g.card))],['Telephone',g.phone?'+233 •••• '+esc(String(g.phone).slice(-2)):na()],['Email',g.email?esc(String(g.email).replace(/^(.).*(@.*)$/,'$1***$2')):na()],['Identity verification',g.st==='done'||g.st==='idok'?'Identity Verified':g.st==='progress'?'In Progress':'Pending Verification'],['Consent',g.cons?'Accepted'+(g.at?' on '+fdt(g.at):''):'Not given'],['Signature',g.sig?(g.sigType==='upload'?'Uploaded':'Drawn'):'Not saved']])}${g.sig&&/^data:image\//.test(g.sig)?`<img src="${esc(g.sig)}" alt="Signature of signatory ${i+1}" style="width:100%;max-width:330px;height:110px;object-fit:contain;border:1px solid var(--line);border-radius:8px;margin-top:10px;background:#fff">`:''}`).join('')}`}
+function tabTransfer(v){const r=v.r,b=v.ben,rec=REC[r.acct],debit=r.debit;
+  return `<div class="grid2"><div><div class="ctitle">${ic('money')}Transaction</div>${kv([['TF number',esc(v.tf)],['Transfer group',GRP[v.grp]],['Purpose',val(r.purpose||(TYPES[r.type]||{}).t)],['Transfer amount',esc(v.cur)+' '+fm(v.amt)],['Transaction currency',esc(v.cur)],['Source account',esc(maskAcct(r.acct))],['Source account type',rec?esc(rec.t)+(rec.fat?' · '+esc(rec.fat):''):na('Not available')],['Source account currency',val(r.srcCur)],['Exchange rate',r.rate?esc(r.rate)+' <span class="small muted" style="display:block;font-weight:400">As recorded at submission. Indicative rates are estimates.</span>':na('Not recorded')],['Commission and charges',debit?'<span class="na">Not saved separately. Included in the recorded debit.</span>':na('Not recorded')],['Estimated total debit',debit?esc(debit)+' <span class="small muted" style="display:block;font-weight:400">Estimate recorded at submission</span>':na('Not recorded')],['Processing branch',val(r.branch,'Not selected')]])}
+  ${v.items.length?`<div class="sub-h">Items</div><div class="tw"><table style="min-width:520px"><thead><tr><th><span class="th">Item</span></th><th class="n"><span class="th">Invoice total</span></th><th class="n"><span class="th">Paid now</span></th><th><span class="th">IDF no.</span></th><th><span class="th">Approx. arrival</span></th></tr></thead><tbody>${v.items.map((x,i)=>`<tr><td>${i+1}. ${val(x.d)}</td><td class="n">USD ${fm(x.inv)}</td><td class="n">USD ${fm(x.pay)}</td><td>${val(x.idf,'Not recorded')}</td><td>${x.garr?fdt(x.garr):na('Not recorded')}</td></tr>`).join('')}</tbody></table></div><p class="small muted" style="margin-top:8px">The customer portal collects an approximate date of arrival on its form but doesn't currently save it with the request, so it shows as not recorded.</p>`:''}</div>
+  <div><div class="ctitle">${ic('user')}Beneficiary</div>${kv([['Beneficiary name',val(b.name)],['Address',val(b.addr,'Not recorded')],['Country',val(b.country)],['Beneficiary bank',val(b.bank)],['SWIFT / BIC',val(b.swift)],['Account number or IBAN',b.acct?esc(maskAcct(b.acct)):na()]])}
+  <p class="small muted" style="margin-top:10px">The customer portal saves only the last four digits of the beneficiary account, and doesn't save the beneficiary address or bank address with the request.</p></div></div>`}
+function tabDocs(v){const R=docRows(v),r=v.r;
+  const up=d=>d.src==='form'?'Signed digitally in the customer portal':d.src==='id'?'Verified during the identity step':r.demo?'Demo record: no upload details saved':'Required before Review in the customer flow';
+  let h=`<div class="ctitle">${ic('file')}Initial supporting documents</div>${v.r.resubmittedAt?`<div class="alert info small" style="margin-bottom:12px">The customer resubmitted this request on ${fdtt(v.r.resubmittedAt)}. Reviews recorded before that date are treated as not reviewed.</div>`:''}<div class="alert info small" style="margin-bottom:14px">The customer portal checks these uploads in the browser but does not save the files, or their names, with the request. Only the review status you record here is stored. No file is available to preview or download.</div>
+  <div class="tw"><table><thead><tr><th><span class="th">Document</span></th><th><span class="th">Upload</span></th><th><span class="th">Review status</span></th><th><span class="th">Record review</span></th></tr></thead><tbody>${R.map(d=>`<tr><td><b>${esc(d.n)}</b></td><td class="small">${up(d)}<div class="muted">File not stored</div></td><td>${d.rv?pill(d.rv.st,d.rv.st==='Accepted in Prototype'?'ok':d.rv.st==='Requires Correction'?'bad':'warn')+`<div class="small muted" style="margin-top:4px">${fdtt(d.rv.at)} · ${esc(d.rv.by)}</div>${d.rv.reason?`<div class="small">${esc(d.rv.reason)}</div>`:''}`:(d.stale?pill('Not reviewed','')+'<div class="small muted" style="margin-top:4px">Earlier review reset by the resubmission</div>':pill('Not reviewed',''))}</td>
+  <td>${v.cat==='completed'||isPay()?`<span class="small muted">${isPay()?'Operations Reviewer only':'Request completed'}</span>`:`<select class="docsel" data-docrv="${esc(v.tf)}" data-area="docs" data-k="${d.k}" aria-label="Review status for ${esc(d.n)}"><option value="">Choose</option>${DOC_ST.map(s=>`<option${d.rv&&d.rv.st===s?' selected':''}>${s}</option>`).join('')}</select>`}</td></tr>`).join('')}</tbody></table></div>`;
+  if(v.grp==='adv')h+=psSection(v);
+  return h}
+function psSection(v){const ps=v.r.ps,R=psRows(v),st=psStatus(v);
+  return `<div class="ctitle" style="margin-top:28px">${ic('ship')}After shipment documents<span class="right">${psPill(st)}</span></div>
+  <div class="alert warn small" style="margin-bottom:12px"><b>Important Notice:</b> Please upload your after shipment documents only after your transfer has been successfully completed. Do not upload these documents while your transfer is still being processed or pending confirmation.</div>
+  ${ps?`<div class="kv" style="margin-bottom:14px"><div>Documents due by</div><div>${fdt(psDue(v))} <span class="small muted" style="display:block;font-weight:400">90 days from submission, the rule set in the customer portal</span></div><div>Approximate date of arrival</div><div>${psArrival(v)?esc(psArrival(v)):na('Not recorded with the request')}</div><div>Submitted for review</div><div>${ps.submitted?fdtt(ps.subAt):na('Not yet submitted by the customer')}</div><div>Current transfer status</div><div>${badge(v.cat)}${v.cat!=='completed'?'<span class="small muted" style="display:block;font-weight:400">The transfer isn\'t marked completed, so uploads may be early under the notice above.</span>':''}</div></div>
+  <div class="tw"><table><thead><tr><th><span class="th">Document</span></th><th><span class="th">File details</span></th><th><span class="th">Review status</span></th><th><span class="th">Record review</span></th></tr></thead><tbody>${R.map(d=>`<tr><td><b>${esc(d.n)}</b><div class="small muted">${d.r?'Required':'Optional'}</div></td><td class="small">${d.f?`${esc(d.f.name)}${d.f.sample?' <span class="tag">Sample</span>':''}<div class="muted">${kb(d.f)} · uploaded ${fdtt(d.f.at)}</div><div class="muted">Details only. The file itself isn't stored.</div>`:`<span class="${d.r?'':'muted'}" style="${d.r?'color:var(--bad);font-weight:600':''}">${d.r?'Missing':'Not provided'}</span>`}</td>
+  <td>${d.f?(d.rv?pill(d.rv.st,d.rv.st==='Accepted in Prototype'?'ok':d.rv.st==='Requires Correction'?'bad':'warn')+`<div class="small muted" style="margin-top:4px">${fdtt(d.rv.at)}</div>${d.rv.reason?`<div class="small">${esc(d.rv.reason)}</div>`:''}`:pill(d.stale?'New upload since last review':'Not reviewed',d.stale?'warn':'')):'<span class="small muted">Nothing uploaded</span>'}</td>
+  <td>${d.f&&!isPay()?`<select class="docsel" data-docrv="${esc(v.tf)}" data-area="ps" data-k="${d.k}" aria-label="Review status for ${esc(d.n)}"><option value="">Choose</option>${DOC_ST.map(s=>`<option${d.rv&&d.rv.st===s?' selected':''}>${s}</option>`).join('')}</select>`:''}</td></tr>`).join('')}</tbody></table></div>
+  <p class="small muted" style="margin-top:10px">Uploading or reviewing these documents never creates a new transfer and never approves the request on its own.</p>
+  ${ps.submitted&&!isPay()?`<div class="actbar" style="margin-top:12px"><button class="btn sec" data-act="psreopen" data-tf="${esc(v.tf)}">Reopen for customer uploads</button><span class="small muted">Lets the customer replace files in the customer portal.</span></div>`:''}`:`<div class="alert">This request has no after shipment record yet.</div>`}`}
+function tabReview(v){const r=v.r,c=custOf(v),s=docSum(v),C=[];
+  const miss=[['amount',v.amt>0],['beneficiary name',v.ben.name],['beneficiary country',v.ben.country],['beneficiary bank',v.ben.bank],['SWIFT / BIC',v.ben.swift],['beneficiary account',v.ben.acct],['source account',r.acct]].filter(x=>!x[1]).map(x=>x[0]);
+  C.push([miss.length?'bad':'ok','Required fields',miss.length?'Missing: '+miss.join(', ')+'.':'Amount, beneficiary and source account details are present.']);
+  if(v.kind==='co'){C.push([c&&!c.fromReq?'ok':'bad','Company verification',c&&!c.fromReq?'Company TIN matches a company record in the customer portal.':'No company record matches this TIN.']);const ci=consentInfo(v);C.push([ci&&ci.R&&ci.done===ci.n?'ok':'warn','Signatory consent and signatures',ci&&ci.R?ci.t+'. '+ci.st+'. (Latest browser session, not linked to this TF number.)':'No signatory session found in this browser.'])}
+  else C.push([c&&!c.fromReq?'ok':'bad','Customer identity',c&&!c.fromReq?'Ghana Card number matches a customer record. Selfie result is not saved with the request.':'No customer record matches this Ghana Card number.']);
+  const a=REC[r.acct],own=a&&(v.kind==='co'?a.tin===v.cid:a.card===v.cid);
+  C.push([own&&a.cur===r.srcCur?'ok':a?'warn':'bad','Source account',!a?'The source account isn\'t in the customer portal records.':own?(a.cur===r.srcCur?'Account belongs to this customer and its currency ('+a.cur+') matches the request.':'Account currency ('+a.cur+') differs from the recorded source currency ('+(r.srcCur||'none')+').'):'Account isn\'t linked to this customer.']);
+  const lim=LIMIT[v.grp];C.push([lim==null||v.amt<=lim?'ok':'bad','Yearly limit',lim==null?'Open Account has no yearly limit.':'This request is USD '+fm(v.amt)+' against a USD '+lim.toLocaleString()+' yearly limit. The amount already used this year isn\'t tracked by the prototype.']);
+  if(v.grp!=='out'){const t=v.items.reduce((x,i)=>x+(+i.pay||0),0),over=v.items.some(i=>+i.pay>+i.inv);C.push([v.items.length&&Math.abs(t-v.amt)<0.01&&!over?'ok':'warn','Items',v.items.length?'Items total USD '+fm(t)+(Math.abs(t-v.amt)<0.01?', matching the transfer amount.':', which differs from the transfer amount.')+(over?' An item pays more than its invoice.':''):'No items recorded.'])}
+  C.push([s.cor?'bad':s.all?'ok':'warn','Initial documents',s.acc+' of '+s.n+' accepted in this admin portal'+(s.cor?', '+s.cor+' need correction.':'.')]);
+  if(/^Special rate/.test(r.rate||''))C.push(['info','Special rate','A special rate was entered, so the Letter for Agreed Rate is in the document list.']);
+  if(v.grp==='open')C.push(['info','Global Market Department approval','Required for every Open Account request. This approval isn\'t tracked in the prototype.']);
+  if(v.grp==='adv')C.push([v.r.ps&&v.r.ps.submitted?'ok':'info','After shipment documents',psStatus(v)+'. Due by '+fdt(psDue(v))+'.']);
+  const ICN={ok:ic('tick'),warn:'!',bad:'×',info:'i'};
+  return `<div class="ctitle">${ic('rules')}Prototype checks</div><div class="alert warn small" style="margin-bottom:12px">These checks only use data in the prototype. No sanctions, AML, KYC, regulatory or core banking checks are performed.</div><ul class="checks">${C.map(([k,t,d])=>`<li><span class="ci ${k}">${ICN[k]}</span><div><b>${t}</b> <span class="tag">Prototype check</span><div class="body">${esc(d)}</div></div></li>`).join('')}</ul>
+  <div class="alert ${s.all?'ok':'info'}" style="margin-top:14px">${s.all?'All required initial documents are accepted, so the request can move past review.':'The request can\'t move past Under Review until every required initial document is marked Accepted in Prototype.'}</div>`}
+/* events() now records the original submission date and the resubmission separately */
+function events(v){const E=[],first=v.r.firstAt||v.at;if(first)E.push({at:first,t:'Request submitted',d:GRP[v.grp]+', '+v.cur+' '+fm(v.amt),src:'Customer record'});
+  if(v.r.resubmittedAt)E.push({at:v.r.resubmittedAt,t:'Customer resubmitted after corrections'+(v.r.resub?' (resubmission '+v.r.resub+')':''),d:(v.r.returnHistory&&v.r.returnHistory.length)?'Last return reason: '+v.r.returnHistory[v.r.returnHistory.length-1].reason:'',src:'Customer record'});
+  const ps=v.r.ps;if(ps&&ps.docs)PS_DOCS.forEach(d=>{const f=ps.docs[d.k];if(f&&f.at)E.push({at:f.at,t:'After shipment document uploaded',d:d.n+': '+f.name+(f.sample?' (sample)':''),src:'Customer record'})});
+  if(ps&&ps.subAt)E.push({at:ps.subAt,t:'After shipment documents submitted',src:'Customer record'});
+  adm().log.filter(e=>e.tf===v.tf).forEach(e=>E.push({at:e.at,t:e.action,d:[e.doc,e.prev&&e.next?e.prev+' to '+e.next:'',e.note].filter(Boolean).join(' · '),src:'Admin portal',by:e.by}));
+  return E.sort((a,b)=>tm(b.at)-tm(a.at))}
+function tabActivity(v){const E=events(v);
+  return `<div class="ctitle">${ic('clock')}Activity</div>${E.map(e=>`<div class="ev"><div class="ev-when">${fdtt(e.at)}</div><div><div class="ev-t">${esc(e.t)}</div>${e.d?`<div class="body">${esc(e.d)}</div>`:''}<div class="small muted">${e.src}${e.by?' · '+esc(e.by):''}</div></div></div>`).join('')||'<div class="empty">No events recorded.</div>'}
+  <div class="alert small" style="margin-top:12px">Events come from timestamps in the customer record and actions taken in this admin portal. Earlier stage changes${v.r.demo?' (including the preset stage of this demo record)':''} have no recorded history.</div>`}
+function tabTracking(v){const i=v.st;
+  return `<div class="ctitle">${ic('route')}Tracking</div>${v.cat==='returned'?`<div class="alert bad" style="margin-bottom:16px"><b>Returned for corrections.</b> ${esc((A(v.tf).returned||{}).reason||'')} The request stays at the ${STAGE_L[v.key]} stage until review resumes.</div>`:''}
+  <ol class="timeline">${v.fl.map((k,j)=>{const cl=j<i||(j===i&&k==='completed')?'done':j===i?'cur':'wait';return `<li class="${cl}"><span class="dot">${cl==='done'?ic('tick'):''}</span><div class="tl">${STAGE_L[k]}</div><div class="small muted">${cl==='done'?'Done':cl==='cur'?'Current stage':'Not started'}</div></li>`}).join('')}</ol>
+  <p class="small muted">Stages follow the ${GRP[v.grp]} workflow in the customer portal. The customer sees the same stage on its Track My Request page.${v.cat==='returned'?' The customer tracker does not show the Returned status, only the stage.':''}</p>`}
+function tabComments(v){const C=A(v.tf).comments.slice().reverse();
+  return `<div class="ctitle">${ic('chat')}Internal comments</div><label class="f" style="display:block"><span class="sr">New comment</span><textarea class="inp" id="cmt" maxlength="1000" placeholder="Add an internal note for ${esc(v.tf)}"></textarea></label><div class="actbar" style="margin:10px 0 18px"><button class="btn" data-act="addcmt" data-tf="${esc(v.tf)}">Add Comment</button><span class="small muted">Saved in this browser only. Not part of any bank audit system.</span></div>
+  ${C.map(c=>`<div class="comment"><div class="small muted">${fdtt(c.at)} · ${esc(c.by)}</div><div style="white-space:pre-wrap;margin-top:4px">${esc(c.text)}</div></div>`).join('')||'<div class="empty">No comments yet.</div>'}`}
+
+/* Review actions. Label switches to 'Return to Customer for Corrections' after a Payments rejection */
+function actionsFor(v){const acc=docSum(v).all,L=[];
+  if(isPay())return [];
+  if(v.cat==='returned')return [{id:'resume',l:'Resume Review',to:'review'}];
+  if(v.cat==='submitted'){L.push({id:'docsrcv',l:'Mark Documents Received',to:'docs'});L.push({id:'review',l:'Mark Under Review',to:'review'})}
+  if(v.cat==='docs')L.push({id:'review',l:'Mark Under Review',to:'review'});
+  if(v.cat==='review')L.push({id:'toappr',l:'Send for Approval',to:'approval',gate:!acc});
+  if(['submitted','docs','review'].includes(v.cat))L.push({id:'return',l:(A(v.tf).sentBack&&v.cat==='review')?'Return to Customer for Corrections':'Request Corrections',to:'returned',bad:1,reason:1});
+  return L}
+function payActions(v){const p=A(v.tf).pay,L=[];if(!isPay())return L;
+  if(v.cat==='approval'){L.push({id:'gopay',l:'Approve and Release Payment',gold:1});L.push({id:'sendback',l:'Send Back to Operations',bad:1})}
+  else if(v.cat==='processing'&&!p)L.push({id:'gopay',l:'Record Payment Release',gold:1});
+  else if(p&&p.st==='sent'){L.push({id:'ack',l:'Record SWIFT ACK from '+adm().cfg.intName.split(',')[0]+' (simulated)'});L.push({id:'nak',l:'Record Rejection (NAK)',bad:1})}
+  else if(p&&p.st==='ack')L.push({id:'done',l:'Confirm Beneficiary Credit and Complete',gold:1});
+  return L}
+function actionsCard(v){const L=actionsFor(v),P=payActions(v),s=A(v.tf),pay=isPay();
+  const btns=L.map(a=>`<button class="btn ${a.bad?'bad':a.id==='toappr'?'gold':''}" data-act="stage" data-tf="${esc(v.tf)}" data-a="${a.id}"${a.gate?' disabled aria-disabled="true"':''}>${esc(a.l)}</button>`).join('')+
+    P.map(a=>`<button class="btn ${a.bad?'bad':a.gold?'gold':''}" data-act="payact" data-tf="${esc(v.tf)}" data-a="${a.id}">${esc(a.l)}</button>`).join('');
+  let info='';
+  if(!pay&&v.cat==='approval')info=`Sent for approval${s.sent?' on '+fdtt(s.sent.at)+' by '+esc(s.sent.by):''}. Waiting for the Payments Officer to approve and release the payment.`;
+  else if(pay&&['submitted','docs','review','returned'].includes(v.cat))info='This request is still with the Operations Reviewer. It reaches your Approval Queue once it is sent for approval.';
+  else if(!btns)info=v.cat==='completed'?'This request is completed in the prototype. No further actions.':v.cat==='processing'?'Payment is with the Payments Officer.':'No actions available.';
+  return `<div class="card" style="margin-top:20px"><div class="ctitle">${ic('bolt')}${pay?'Payment actions':'Review actions'}<span class="tag">Simulated</span></div>
+  ${s.sentBack&&v.cat==='review'&&(!v.r.resubmittedAt||tm(s.sentBack.at)>tm(v.r.resubmittedAt))?`<div class="alert warn" style="margin-bottom:12px"><b>Sent back by the Payments Officer</b> on ${fdtt(s.sentBack.at)}: ${esc(s.sentBack.reason)}<div class="small" style="margin-top:6px">Review the reason, then either resume review or use Request Corrections to return the request to the customer, who can edit and resubmit the whole transfer.</div></div>`:''}
+  ${btns?`<div class="actbar">${btns}</div>`:''}${info?`<p class="body" style="margin:${btns?'10px':'0'} 0 0">${info}</p>`:''}
+  ${L.some(a=>a.gate)?`<p class="small muted" style="margin:10px 0 0">Accept every required initial document in the Documents tab before sending for approval.</p>`:''}
+  <p class="small muted" style="margin:10px 0 0">These actions update the request in this browser only. No real money moves and nothing is sent to the SWIFT network.</p></div>`}
+function setStage(r,f,to){if(to==='returned'){r.status='Returned';return}let i=f.fl.indexOf(to);if(i<0&&to==='approval')i=f.fl.indexOf('review');r.stage=i;r.status=CAT[to].l}
+/* doStage now writes the customer-visible return record into the shared request */
+function doStage(tf,id){load();const v=DATA.byTf[tf];if(!v)return toast('Request not found.');const a=actionsFor(v).find(x=>x.id===id);if(!a)return toast('That action isn\'t available for the request\'s current status.');if(a.gate)return toast('Accept every required initial document first.');
+  const to=a.to;
+  modal({title:a.l+'?',body:`<p>${esc(v.tf)} for ${esc(v.name)} will move from <b>${CAT[v.cat].l}</b> to <b>${CAT[to].l}</b>.</p>${to==='approval'?'<p>It will appear in the Payments Officer\'s Approval Queue.</p>':''}${to==='returned'?'<p>The customer will see an action-needed notice on the customer portal landing page with this reason, and can edit and resubmit the whole transfer.</p>':''}<p class="small muted">This is a simulated prototype action.</p>`,reason:a.reason?'Reason for the customer (required)':'Comment (optional)',need:!!a.reason,ok:a.l,bad:a.bad,
+   onOk:reason=>{load();const f=DATA.byTf[tf];if(!f||f.cat!==v.cat){toast('This request changed elsewhere. The view has been refreshed.');return render()}
+    const now=new Date().toISOString();
+    const ok=rqUpd(tf,r=>{setStage(r,f,to);if(to==='returned'){const rec={reason,at:now,by:ADMIN.id,fromStage:f.st,fromStatus:CAT[f.cat].l};r.return=rec;r.returnHistory=Array.isArray(r.returnHistory)?r.returnHistory.concat([rec]):[rec]}else if(a.id==='resume'){r.return=null}});if(!ok&&!memRQ)return toast('The request couldn\'t be saved.');
+    const ad=adm(),q=areq(ad,tf);if(to==='returned')q.returned={reason,at:now,by:ADMIN.id};if(a.id==='resume')q.returned=null;if(to==='approval'){q.sent={at:now,by:ADMIN.id,note:reason||''};q.sentBack=null}admSave(ad);
+    logEv({tf,action:a.l,prev:CAT[v.cat].l,next:CAT[to].l,note:reason||''});toast(v.tf+' is now '+CAT[to].l+'.');render.keepScroll=true;render()}})}
+
+/* ==========================================================================
+   13b. SWIFT PAYMENT RELEASE (simulated)
+   ========================================================================== */
+const PAYST={sent:['Sent, awaiting ACK','warn'],ack:['ACK received','info'],done:['Credit confirmed','ok']};
+function debitOf(v){const s=String(v.r.debit||''),m=s.match(/^([A-Z]{3}) ([\d,]+(?:\.\d+)?)/);
+  if(m)return {cur:m[1],amt:+m[2].replace(/,/g,''),est:false,src:'Recorded at submission, including charges'};
+  const c=v.r.srcCur||'USD',a=c==='GHS'?v.amt*RATES.GHS:c==='GBP'?v.amt/RATES.GBP:c==='EUR'?v.amt/RATES.EUR:v.amt;
+  return {cur:c,amt:Math.round(a*100)/100,est:true,src:c==='USD'?'Principal only. Charges were not recorded with the request.':'Estimate: principal only at the customer portal\'s simulated rate. Charges were not recorded with the request.'}}
+function availOf(acct){const r=REC[acct];if(!r)return null;let b=r.bal;adm().ledger.forEach(e=>{if(e.acct===acct)b+=e.side==='Cr'?e.amt:-e.amt});return Math.round(b*100)/100}
+function uuid(){try{if(crypto.randomUUID)return crypto.randomUUID()}catch(e){}return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16)})}
+const swiftTxt=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9 \/\-?:().,'+]/g,'').slice(0,35);
+function mt103(v,o){const c=o.int,d=(o.vdate||'').replace(/-/g,'').slice(2),cu=custOf(v),b=v.ben,amt=(+v.amt).toFixed(2).replace('.',',');
+  return [`{1:F01${c.senderBic}XXXX0000000000}{2:I103${c.intBic}XXXXN}{3:{121:${o.uetr}}}{4:`,`:20:${o.ref}`,':23B:CRED',`:32A:${d}USD${amt}`,
+  `:50K:/${v.r.acct||'NOT RECORDED'}`,swiftTxt(v.name),swiftTxt(cu&&cu.addr||'ADDRESS NOT RECORDED'),`:52A:${c.senderBic}`,`:53B:/${String(c.nostro).replace(/\D/g,'')}`,
+  `:57A:${b.swift||'NOT RECORDED'}`,`:59:/${b.acct?String(b.acct).replace(/[^0-9]/g,'').padStart(8,'X'):'NOT RECORDED'}`,swiftTxt(b.name),swiftTxt(b.country),
+  `:70:/RFB/${v.tf} ${swiftTxt(v.r.purpose||'')}`.slice(0,39),`:71A:${o.chg||'SHA'}`,'-}'].join('\n')}
+function routeHTML(v,c){const b=v.ben,box=(t,s,hl)=>`<div style="flex:1;min-width:130px;background:${hl?'var(--goldbg)':'#F8F9FB'};border:1px solid ${hl?'#EBD38A':'var(--line)'};border-radius:10px;padding:10px 12px"><div class="small muted">${t}</div><b style="display:block;word-break:break-word">${s}</b></div>`,ar=`<div aria-hidden="true" style="align-self:center;color:var(--gold2);font-weight:700">→</div>`;
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:6px 0 16px">${box('1. Debit customer account',esc(maskAcct(v.r.acct))+' '+esc(v.r.srcCur||''))+ar+box('2. Sender',esc(c.senderName)+'<div class="small muted">'+esc(c.senderBic)+'</div>')+ar+box('3. Intermediary bank',esc(c.intName)+'<div class="small muted">'+esc(c.intBic)+' · nostro '+esc(c.nostro)+'</div>',1)+ar+box('4. Beneficiary bank',val(b.bank)+'<div class="small muted">'+esc(b.swift||'')+'</div>')+ar+box('5. Beneficiary',val(b.name)+'<div class="small muted">'+esc(b.country||'')+'</div>')}</div>`}
+function ledgerTable(E){return E.length?`<div class="tw"><table><thead><tr>${['Date and Time','TF Number','Account','Entry','Amount','Reference','Note'].map(h=>`<th><span class="th">${h}</span></th>`).join('')}</tr></thead><tbody>${E.map(e=>`<tr><td class="small">${fdtt(e.at)}</td><td><span class="tfn">${esc(e.tf)}</span></td><td>${esc(e.label)}</td><td>${pill(e.side==='Dr'?'Debit':'Credit',e.side==='Dr'?'bad':'ok')}</td><td><b>${esc(e.cur)} ${fm(e.amt)}</b>${e.est?' <span class="tag">Estimate</span>':''}</td><td class="small">${esc(e.ref)}</td><td class="small">${esc(e.note||'')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No ledger entries yet.</div>'}
+function tabPayment(v){const s=A(v.tf),p=s.pay,c=adm().cfg,pay=isPay();
+  let h=`<div class="ctitle">${ic('send')}SWIFT payment<span class="tag">Simulated</span>${p?`<span class="right">${pill(PAYST[p.st][0],PAYST[p.st][1])}</span>`:''}</div>
+  <div class="alert warn small" style="margin-bottom:14px">Prototype only. No money leaves any account and no message is sent to the SWIFT network or to ${esc(c.intName)}. Correspondent details are sample values set in Settings; confirm real routing with Treasury before any live use.</div>`;
+  if(p){const E=adm().ledger.filter(e=>e.tf===v.tf);
+    h+=routeHTML(v,p.int)+`<div class="grid2"><div>${kv([['Sender reference (field 20)',esc(p.ref)],['UETR',`<span style="font-family:monospace;font-size:12px">${esc(p.uetr)}</span>`],['Amount sent','USD '+fm(p.usd)],['Value date',fdt(p.vdate)],['Charges (field 71A)',esc(p.chg)],['Customer debit',esc(p.debit.cur)+' '+fm(p.debit.amt)+(p.debit.est?' <span class="tag">Estimate</span>':'')],['Released by',esc(p.by)+' on '+fdtt(p.at)],['Sent for approval by',s.sent?esc(s.sent.by)+' on '+fdtt(s.sent.at):na('Not recorded')]])}</div>
+    <div><div class="sub-h" style="margin-top:0">Payment progress</div><ol class="timeline">${[['Approved and released','sent'],['Sent to SWIFT network (simulated)','sent'],['ACK received from '+p.int.intName.split(',')[0],'ack'],['Credit confirmed at beneficiary bank','done']].map(([l,k],j)=>{const ord={sent:1,ack:2,done:3}[p.st],need=[1,1,2,3][j],st=(p.steps||[]).find(x=>x.k===k&&(j!==1||x.sw));const done=ord>=need;return `<li class="${done?'done':'wait'}"><span class="dot">${done?ic('tick'):''}</span><div class="tl">${esc(l)}</div><div class="small muted">${done?fdtt((p.steps||[]).filter(x=>x.k===k)[0]?.at||p.at):'Not yet'}</div></li>`}).join('')}</ol></div></div>
+    <div class="sub-h">MT103 message (simulated, not transmitted)</div><pre style="background:#1F2933;color:#E8EDF2;border-radius:10px;padding:14px;overflow:auto;font-size:12px;line-height:18px;margin:0">${esc(p.mt)}</pre>
+    <div class="sub-h">Ledger entries</div>${ledgerTable(E)}`}
+  else if(pay&&(v.cat==='approval'||v.cat==='processing')){const d=debitOf(v),av=availOf(v.r.acct),rec=REC[v.r.acct],b=v.ben,short=av!=null&&d.cur===(rec&&rec.cur)&&av<d.amt;
+    const draft=mt103(v,{int:c,vdate:new Date().toISOString().slice(0,10),uetr:'(generated on release)',ref:'(generated on release)',chg:'SHA'});
+    h+=routeHTML(v,c)+`<div class="grid2"><div><div class="sub-h" style="margin-top:0">Debit and amount</div>${kv([['Amount to send','<b>USD '+fm(v.amt)+'</b>'],['Debit from',esc(maskAcct(v.r.acct))+(rec?' · '+esc(rec.t)+' '+esc(rec.cur):'')],['Amount to debit',esc(d.cur)+' '+fm(d.amt)+`<span class="small muted" style="display:block;font-weight:400">${esc(d.src)}</span>`],['Available sample balance',av==null?na('Account not found'):esc(rec.cur)+' '+fm(av)+(short?' <span class="b bad">Insufficient</span>':'')],['Beneficiary bank SWIFT',val(b.swift)],['Beneficiary account',b.acct?esc(maskAcct(b.acct))+'<span class="small muted" style="display:block;font-weight:400">Only the last four digits are saved by the customer portal. A live payment needs the full number.</span>':na()]])}</div>
+    <div><div class="sub-h" style="margin-top:0">Release details</div>
+    <label class="f" style="display:flex;margin-bottom:12px"><span>Charges (field 71A)</span><select id="pchg" class="inp" data-pay="1"><option value="">Choose</option><option value="OUR">OUR: customer pays all charges</option><option value="SHA">SHA: charges shared</option><option value="BEN">BEN: beneficiary pays charges</option></select><span class="small muted">The customer's choice isn't saved with the request, so confirm it against the signed form.</span></label>
+    <label class="f" style="display:flex;margin-bottom:12px"><span>Value date</span><input type="date" id="pvd" class="inp" data-pay="1" value="${new Date().toISOString().slice(0,10)}"></label>
+    ${['I have checked the beneficiary name, bank and SWIFT code against the signed form and documents.','I confirm the debit account and amount are correct.','I understand this is a simulation and no real payment is made.'].map((t,i)=>`<label class="chk" style="margin:8px 0;align-items:flex-start"><input type="checkbox" id="pc${i}"> <span>${t}</span></label>`).join('')}
+    <label class="f" style="display:flex;margin-top:12px"><span>Type the TF number to confirm</span><input id="ptf" class="inp" autocomplete="off" placeholder="${esc(v.tf)}"></label>
+    <div class="small" id="perr" style="color:var(--bad);margin-top:8px" role="alert"></div>
+    <button class="btn gold full" style="margin-top:12px" data-act="release" data-tf="${esc(v.tf)}"${short?' disabled':''}>${ic('send')} Approve and Release via ${esc(c.intName.split(',')[0])} (simulated)</button>
+    ${short?'<p class="small" style="color:var(--bad)">The sample balance is below the amount to debit, so release is blocked.</p>':''}</div></div>
+    <div class="sub-h">MT103 preview</div><pre id="mtprev" style="background:#1F2933;color:#E8EDF2;border-radius:10px;padding:14px;overflow:auto;font-size:12px;line-height:18px;margin:0">${esc(draft)}</pre>`}
+  else h+=`<div class="empty"><b>No payment released</b>${pay?'This request isn\'t in your Approval Queue yet.':v.cat==='approval'?'Waiting for the Payments Officer to approve and release the payment.':'The Payments Officer releases the payment after you send the request for approval.'}</div>`;
+  if(s.payHist.length)h+=`<div class="sub-h">Earlier attempts</div>${s.payHist.map(x=>`<div class="comment"><b>${esc(x.ref)}</b> · rejected ${fdtt(x.failAt)} by ${esc(x.failBy)}<div class="small">${esc(x.reason)}</div><div class="small muted">UETR ${esc(x.uetr)} · reversed in the ledger</div></div>`).join('')}`;
+  return h}
+function payDraftUpdate(tf){const v=DATA.byTf[tf],el=$('#mtprev');if(!v||!el)return;el.textContent=mt103(v,{int:adm().cfg,vdate:($('#pvd')||{}).value||'',uetr:'(generated on release)',ref:'(generated on release)',chg:($('#pchg')||{}).value||'SHA'})}
+function doRelease(tf){load();const v=DATA.byTf[tf],err=m=>{const e=$('#perr');if(e)e.textContent=m;return false};
+  if(!v||!isPay()||!(v.cat==='approval'||(v.cat==='processing'&&!A(tf).pay)))return toast('This request can\'t be released in its current status.');
+  const chg=$('#pchg').value,vd=$('#pvd').value,ok=[0,1,2].every(i=>$('#pc'+i).checked),typed=($('#ptf').value||'').trim().toUpperCase();
+  if(!chg)return err('Choose who pays the charges.');if(!vd||vd<new Date().toISOString().slice(0,10))return err('Choose a value date from today onwards.');
+  if(!ok)return err('Tick all three confirmations.');if(typed!==v.tf)return err('The TF number you typed doesn\'t match '+v.tf+'.');
+  if(!v.ben.swift||!v.ben.name)return err('Beneficiary name and SWIFT code are required.');
+  const d=debitOf(v),rec=REC[v.r.acct],av=availOf(v.r.acct);if(!rec)return err('The debit account isn\'t in the customer records.');if(d.cur===rec.cur&&av<d.amt)return err('Insufficient sample balance.');
+  const c=adm().cfg;
+  modal({title:'Release USD '+fm(v.amt)+'?',body:`<p>Debit <b>${esc(d.cur)} ${fm(d.amt)}</b> from ${esc(maskAcct(v.r.acct))} and send an MT103 to <b>${esc(c.intName)}</b> (${esc(c.intBic)}) for ${esc(v.ben.bank||'the beneficiary bank')}.</p><p class="small muted">Simulated. Nothing is sent to SWIFT.</p>`,ok:'Release Payment',
+   onOk:()=>{load();const f=DATA.byTf[tf];if(!f||f.cat!==v.cat||A(tf).pay){toast('This request changed elsewhere. The view has been refreshed.');return render()}
+    const now=new Date().toISOString(),uetr=uuid(),ref=('FX'+tf.slice(-8)+Math.random().toString(36).slice(2,6)).toUpperCase().slice(0,16),cfg=Object.assign({},adm().cfg);
+    const p={st:'sent',ref,uetr,at:now,by:ADMIN.id,chg,vdate:vd,usd:v.amt,debit:d,int:cfg,steps:[{k:'sent',at:now},{k:'sent',sw:1,at:now}]};p.mt=mt103(v,p);
+    rqUpd(tf,r=>{r.stage=f.fl.indexOf('processing');r.status='Processing'});
+    const ad=adm(),q=areq(ad,tf);q.pay=p;q.approvedAt=now;
+    ad.ledger.push({id:uuid(),at:now,tf,acct:v.r.acct,label:'Customer '+maskAcct(v.r.acct)+' '+d.cur,side:'Dr',cur:d.cur,amt:d.amt,est:d.est,ref,note:'Debit for outward transfer'},{id:uuid(),at:now,tf,acct:'NOSTRO',label:'GCB USD nostro at '+cfg.intName.split(',')[0],side:'Cr',cur:'USD',amt:v.amt,est:false,ref,note:'Paid out via SWIFT (simulated)'});
+    admSave(ad);logEv({tf,action:'Payment approved and released via SWIFT (simulated)',prev:CAT[v.cat].l,next:'Processing',note:'Ref '+ref+', UETR '+uetr+', '+chg+', to '+cfg.intName});
+    toast('Payment released for '+tf+' (simulated).');nav('#/req/'+encodeURIComponent(tf)+'/payment?from='+encodeURIComponent(parse().q.from||'queue'))}})}
+function doPayAct(tf,id){load();const v=DATA.byTf[tf];if(!v)return;const a=payActions(v).find(x=>x.id===id);if(!a)return toast('That action isn\'t available now.');
+  if(id==='gopay')return nav('#/req/'+encodeURIComponent(tf)+'/payment?from='+encodeURIComponent(parse().q.from||'queue'));
+  const p=A(tf).pay,int=p?p.int.intName.split(',')[0]:'';
+  const cfg={sendback:{t:'Send back to Operations?',b:'The request returns to Under Review with your reason. No payment is made. The Operations Reviewer can then return it to the customer, who can edit and resubmit the whole transfer.',reason:'Reason (required)',need:1,ok:'Send Back',bad:1},
+    ack:{t:'Record SWIFT ACK?',b:'Record that '+int+' acknowledged the MT103 '+(p?p.ref:'')+'.',ok:'Record ACK'},
+    nak:{t:'Record rejection (NAK)?',b:'The payment is marked rejected, the ledger entries are reversed and the request returns to your Approval Queue.',reason:'Rejection reason (required)',need:1,ok:'Record Rejection',bad:1},
+    done:{t:'Confirm credit and complete?',b:'Record that the beneficiary bank confirmed the credit. The request becomes Completed and the customer tracker shows Completed.',ok:'Complete Transfer'}}[id];
+  modal({title:cfg.t,body:`<p>${esc(cfg.b)}</p><p class="small muted">Simulated prototype action.</p>`,reason:cfg.reason||'Comment (optional)',need:!!cfg.need,ok:cfg.ok,bad:cfg.bad,onOk:reason=>{load();const f=DATA.byTf[tf],ad=adm(),q=areq(ad,tf),now=new Date().toISOString(),cp=q.pay;let next='';
+    if(!f||!payActions(f).some(x=>x.id===id)){toast('This request changed elsewhere. The view has been refreshed.');return render()}
+    if(id==='sendback'){rqUpd(tf,r=>setStage(r,f,'review'));q.sent=null;q.sentBack={reason,at:now,by:ADMIN.id};next='Under Review'}
+    if(id==='ack'){cp.st='ack';cp.steps.push({k:'ack',at:now});next='Processing (ACK received)'}
+    if(id==='done'){cp.st='done';cp.steps.push({k:'done',at:now});rqUpd(tf,r=>setStage(r,f,'completed'));next='Completed'}
+    if(id==='nak'){ad.ledger.filter(e=>e.tf===tf&&e.ref===cp.ref&&!e.rev).forEach(e=>{e.rev=1;ad.ledger.push({id:uuid(),at:now,tf,acct:e.acct,label:e.label,side:e.side==='Dr'?'Cr':'Dr',cur:e.cur,amt:e.amt,est:e.est,ref:cp.ref,note:'Reversal after rejection',rev:1})});
+      q.payHist.push(Object.assign({},cp,{st:'failed',failAt:now,failBy:ADMIN.id,reason}));q.pay=null;q.approvedAt='';rqUpd(tf,r=>setStage(r,f,'approval'));next='Awaiting Approval'}
+    admSave(ad);logEv({tf,action:a.l,prev:CAT[f.cat].l,next,note:reason||''});toast(tf+': '+next+'.');render.keepScroll=true;render()}})}
+function ledgerPage(){const E=adm().ledger.slice().reverse();
+  return head('Payments Ledger','Simulated postings created when payments are released, and reversals after rejections.')+`<div class="alert warn small" style="margin-bottom:20px">These entries exist only in this browser. They don't change any real account, and the customer portal still shows its own sample balances.</div><section class="card">${ledgerTable(E)}</section>`}
+function payDashboard(){const L=DATA.L,P=v=>A(v.tf).pay,q=L.filter(v=>v.cat==='approval'),sent=L.filter(v=>P(v)&&P(v).st==='sent'),ack=L.filter(v=>P(v)&&P(v).st==='ack'),done=L.filter(v=>P(v)&&P(v).st==='done'),back=L.filter(v=>A(v.tf).sentBack&&v.cat==='review'),tot=L.filter(P).reduce((x,v)=>x+P(v).usd,0),c=adm().cfg;
+  const S=[['Awaiting Approval',q.length,'warn','#/queue','Sent by the Operations Reviewer'],['Sent, Awaiting ACK',sent.length,'info','#/sent','MT103 released to '+c.intName.split(',')[0]],['ACK Received',ack.length,'info','#/sent','Waiting for credit confirmation'],['Completed Payments',done.length,'ok','#/completed','Credit confirmed'],['Value Released (USD)',fm(tot),'','#/ledger','Active and completed payments'],['Sent Back to Operations',back.length,'bad','#/track','Waiting for the reviewer']];
+  return head('Welcome back, '+ADMIN.name,'Approve requests checked by Operations and release payments to '+esc(c.intName)+' over the SWIFT network (simulated).')+
+  `<div class="card"><div class="ctitle">${ic('bolt')}Quick Actions</div><div class="qa">${[['clock','Open Approval Queue','#/queue'],['send','View Released Payments','#/sent'],['money','View Payments Ledger','#/ledger'],['sliders','Intermediary Bank Settings','#/settings'],['pulse','View Recent Activity','#/activity']].map(([i,l,h])=>`<button data-go="${h}">${ic(i)}<span>${l}</span><span class="chev">${ic('chevR')}</span></button>`).join('')}</div></div>
+  <div class="sec-label">Payments overview</div><div class="stats">${S.map(([l,n,cl,h,d])=>`<button class="stat ${cl}" data-go="${h}"><div class="stat-l">${l}</div><div class="stat-v">${n}</div><div class="stat-h">${esc(d)}</div></button>`).join('')}</div>
+  <div class="card" style="margin-top:20px"><div class="ctitle">${ic('clock')}Approval Queue<span class="right"><button class="btn sec sm" data-go="#/queue">Open queue</button></span></div>${q.length?table(q.slice(0,6),['tf','name','grp','amt','sentat','act'],null,'queue'):'<div class="empty"><b>No requests waiting</b>Requests appear here once the Operations Reviewer sends them for approval.</div>'}</div>`}
+
+/* ==========================================================================
+   14. CUSTOMER DIRECTORY
+   ========================================================================== */
+function customersPage(){const u=ui('customers'),q=(u.q||'').toLowerCase();
+  const L=Object.values(CUST).filter(c=>(!u.kind||c.kind===u.kind)&&(!q||[c.name,c.id,c.email,c.phone].join(' ').toLowerCase().indexOf(q)>=0)).sort((a,b)=>a.name.localeCompare(b.name));
+  return head('Customer Directory','Individual and company records from the customer portal, with their transfer requests. Each customer is listed once.')+
+  `<section class="card"><div class="filters"><label class="f grow"><span>Search</span><input type="search" data-cu="q" value="${esc(u.q)}" placeholder="Name, Ghana Card, TIN, email or phone"></label><label class="f"><span>Customer type</span><select data-cu="kind"><option value="">All types</option><option value="ind"${u.kind==='ind'?' selected':''}>Individual</option><option value="co"${u.kind==='co'?' selected':''}>Company</option></select></label></div>
+  <div id="results">${L.length?`<div class="tw"><table><thead><tr>${['Customer or Company','Customer Type','Identifier','Contact','Accounts','Requests','Latest Request','Action'].map(h=>`<th><span class="th">${h}</span></th>`).join('')}</tr></thead><tbody>${L.map(c=>{const R=reqsOf(c);return `<tr data-cust="${esc(c.key)}"><td><b>${esc(c.name)}</b>${c.fromReq?' <span class="tag">From request</span>':''}</td><td>${c.kind==='co'?'Company':'Individual'}</td><td>${esc(maskId(c.kind,c.id))}</td><td class="small">${c.email?esc(c.email.replace(/^(.).*(@.*)$/,'$1***$2')):na()}<div class="muted">${c.phone?'•••• '+esc(c.phone.slice(-3)):''}</div></td><td>${c.accts.length}</td><td>${R.length}</td><td>${R.length?fdt(R[0].at):na('None')}</td><td><button class="btn sm" data-go="#/customer/${encodeURIComponent(c.key)}">Open</button></td></tr>`}).join('')}</tbody></table></div>`:`<div class="empty"><b>No customers match</b>Change the search.</div>`}</div></section>`}
+function customerPage(key){const c=CUST[key];if(!c)return `<a class="back" href="#/customers">${ic('arrowL')} Back to Customer Directory</a><div class="card" style="margin-top:16px"><div class="empty"><b>Customer not found</b></div></div>`;
+  const R=reqsOf(c);
+  return `<div class="dhead"><a class="back" href="#/customers">${ic('arrowL')} Back to Customer Directory</a><div class="dtitle"><h1>${esc(c.name)}</h1><span class="b">${c.kind==='co'?'Company':'Individual'}</span></div></div>
+  <div class="grid2"><div class="card"><div class="ctitle">${ic(c.kind==='co'?'building':'user')}Profile</div>${kv(c.kind==='co'?[['Company name',esc(c.name)],['Company TIN',val(c.id)],['Telephone',val(c.phone)],['Email',val(c.email)],['Signatories on mandate',c.sg?String(c.sg.length):na('None recorded')]]:[['Full name',esc(c.name)],['Ghana Card number',val(c.id)],['Date of birth',c.dob?fdt(c.dob):na()],['Telephone',val(c.phone)],['Email',val(c.email)],['Address',val(c.addr)]])}</div>
+  <div class="card"><div class="ctitle">${ic('money')}Accounts</div>${c.accts.length?acctTable(c.accts,''):'<div class="alert">No accounts on record.</div>'}</div></div>
+  <div class="card" style="margin-top:20px"><div class="ctitle">${ic('list')}Transfer requests (${R.length})</div>${R.length?table(R,['tf','grp','src','amt','at','status','act'],null,'customer:'+c.key):'<div class="empty">No transfer requests saved for this customer.</div>'}</div>`}
+
+/* ==========================================================================
+   15. ACTIVITY LOG + SETTINGS
+   ========================================================================== */
+function activityPage(){const u=ui('activity'),q=(u.q||'').toLowerCase(),L=adm().log.slice().reverse().filter(e=>!q||[e.tf,e.action,e.doc,e.note,e.prev,e.next].join(' ').toLowerCase().indexOf(q)>=0);const per=25,pages=Math.max(1,Math.ceil(L.length/per));u.pg=Math.min(Math.max(1,u.pg),pages);const S=L.slice((u.pg-1)*per,u.pg*per);
+  return head('Activity Log','Actions taken in this admin portal, newest first.')+`<div class="alert warn small" style="margin-bottom:20px">This log is stored in this browser only. It is a prototype record, not a secure or tamper proof audit trail. Actions from before the admin portal was first used are not available.</div>
+  <section class="card"><div class="filters"><label class="f grow"><span>Search</span><input type="search" data-alog="q" value="${esc(u.q)}" placeholder="TF number, action or note"></label></div><div id="results">${S.length?`<div class="tw"><table><thead><tr>${['Date and Time','TF Number','Action','Change','Comment or Reason','By'].map(h=>`<th><span class="th">${h}</span></th>`).join('')}</tr></thead><tbody>${S.map(e=>`<tr${e.tf&&DATA.byTf[e.tf]?` data-row="${esc(e.tf)}" data-from="activity"`:''}><td class="small">${fdtt(e.at)}</td><td>${e.tf?`<span class="tfn">${esc(e.tf)}</span>`:na('None')}</td><td><b>${esc(e.action)}</b>${e.doc?`<div class="small muted">${esc(e.doc)}</div>`:''}</td><td class="small">${e.prev&&e.next?esc(e.prev)+' to '+esc(e.next):'<span class="muted">None</span>'}</td><td class="small">${e.note?esc(e.note):'<span class="muted">None</span>'}</td><td class="small">${esc(e.by)}</td></tr>`).join('')}</tbody></table></div><div class="pager"><span class="small muted">${L.length} event${L.length===1?'':'s'}</span>${pages>1?`<span class="actbar"><button class="btn sec sm" data-alpg="${u.pg-1}"${u.pg<=1?' disabled':''}>Previous</button><span class="small">Page ${u.pg} of ${pages}</span><button class="btn sec sm" data-alpg="${u.pg+1}"${u.pg>=pages?' disabled':''}>Next</button></span>`:''}</div>`:'<div class="empty"><b>No activity recorded</b>Actions you take in the admin portal appear here.</div>'}</div></section>`}
+function settingsPage(){const o=rqAll(),miss=Object.keys(CUSTOMER_SEEDS).filter(k=>!o[k]),ad=adm(),R=rd(MSK);
+  return head('Settings','Prototype data and storage for this browser.')+`<div class="grid2"><div class="card"><div class="ctitle">${ic('info')}Shared data</div>${kv([['Customer requests (gcbfx_requests_v1)',DATA.L.length+' readable'+(DATA.bad.length?', '+DATA.bad.length+' skipped':'')],['Signatory session (gcbfx_mandate_v1)',R&&R.sigs?R.sigs.length+' signatories':'None'],['Admin data (gcbfx_admin_v1)',Object.keys(ad.req).length+' requests with reviews or comments, '+ad.log.length+' log events'],['Browser storage',storeOK?'Available':'Not available'],['Page address',esc(location.origin&&location.origin!=='null'?location.origin:location.protocol)]])}
+  ${DATA.bad.length?`<div class="alert bad small" style="margin-top:12px">Skipped records that couldn't be read: ${DATA.bad.map(b=>esc(b.tf)+' ('+esc(b.why)+')').join(', ')}. They are left untouched in storage.</div>`:''}
+  <p class="small muted" style="margin-top:12px">The admin portal shares data with the customer portal only when both pages are opened from the same address, in the same browser (for example, both files in one folder opened from the same local server or site).</p></div>
+  <div class="card"><div class="ctitle">${ic('sliders')}Tools</div>
+  ${isPay()?'':`<div class="sub-h" style="margin-top:0">Customer portal demo requests</div><p class="body">The customer portal creates two demo requests (TF2026000231 and TF2026000184) the first time it opens. Add them here if this browser hasn't opened it yet. Existing records are never overwritten.</p><button class="btn sec" data-act="seed"${miss.length?'':' disabled'}>${miss.length?'Add '+miss.length+' missing demo request'+(miss.length>1?'s':''):'Demo requests already present'}</button>
+  <div class="sub-h">Move data between browsers</div><p class="body">Export saves the customer requests, signatory session and admin data as a file. Import adds requests that aren't already here and keeps existing ones.</p><div class="actbar"><button class="btn sec" data-act="export">Export data</button><label class="btn sec" for="imp">Import data</label><input type="file" id="imp" accept="application/json,.json" hidden></div>`}
+  <div class="sub-h">Intermediary bank (SWIFT routing)</div>${isPay()?`<p class="body">Sample correspondent details used for new releases. Already released payments keep the details they were sent with.</p>${[['intName','Intermediary bank name'],['intBic','Intermediary BIC'],['intAddr','Intermediary address'],['nostro','GCB nostro account at the intermediary'],['senderName','Sender bank name'],['senderBic','Sender BIC']].map(([k,l])=>`<label class="f" style="display:flex;margin-bottom:10px"><span>${l}</span><input class="inp" id="cfg_${k}" value="${esc(ad.cfg[k])}"></label>`).join('')}<div class="actbar"><button class="btn" data-act="savecfg">Save settings</button><button class="btn sec" data-act="resetcfg">Restore sample values</button></div>`:kv([['Intermediary bank',esc(ad.cfg.intName)],['BIC',esc(ad.cfg.intBic)],['Nostro',esc(ad.cfg.nostro)]])+'<p class="small muted">Only the Payments Officer can change these.</p>'}
+  ${isPay()?'':`<div class="sub-h">Reset admin data</div><p class="body">Clears reviews, comments, payments, the ledger and the activity log. Customer requests and their statuses are not changed.</p><button class="btn bad" data-act="resetadm">Clear admin data</button>`}</div></div>`}
+
+/* ==========================================================================
+   16. MODAL, TOAST
+   ========================================================================== */
+let MODAL=null,lastFocus=null;
+function modal(o){MODAL=o;lastFocus=document.activeElement;$('#mroot').innerHTML=`<div class="mroot" data-act="mclose-bg"><div class="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><h2 id="mtitle">${esc(o.title)}</h2>${o.body||''}${o.reason?`<label class="f" style="display:block;margin-top:12px"><span>${esc(o.reason)}</span><textarea class="inp" id="mreason" maxlength="500"></textarea></label><div class="small" id="merr" style="color:var(--bad);margin-top:4px"></div>`:''}<div class="acts"><button class="btn sec" data-act="mclose">Cancel</button><button class="btn ${o.bad?'bad':''}" data-act="mok">${esc(o.ok||'Confirm')}</button></div></div></div>`;const f=$('#mreason')||$('#mroot [data-act="mok"]');if(f)f.focus()}
+function closeModal(silent){if(!MODAL&&!$('#mroot').innerHTML)return;MODAL=null;$('#mroot').innerHTML='';if(!silent&&lastFocus&&lastFocus.focus)try{lastFocus.focus()}catch(e){}}
+let tT;function toast(m){let t=$('.toast');if(!t){t=document.createElement('div');t.className='toast';t.setAttribute('role','status');document.body.appendChild(t)}t.textContent=m;clearTimeout(tT);tT=setTimeout(()=>t.remove(),3200)}
+
+/* ==========================================================================
+   17. EVENTS
+   ========================================================================== */
+function setDocReview(tf,area,k,st,reason){load();const v=DATA.byTf[tf];if(!v)return;const list=area==='ps'?psRows(v):docRows(v),d=list.find(x=>x.k===k);if(!d)return;
+  const ad=adm(),q=areq(ad,tf),prev=(q[area][k]&&!d.stale?q[area][k].st:'')||'Not reviewed',rec={st,reason:reason||'',at:new Date().toISOString(),by:ADMIN.id};
+  if(area==='ps'){if(!d.f)return toast('Nothing uploaded for this document.');rec.fileAt=d.f.at}
+  q[area][k]=rec;admSave(ad);logEv({tf,action:area==='ps'?'After shipment document reviewed':'Initial document reviewed',doc:d.n,prev,next:st,note:reason||''});toast(d.n+': '+st+'.');render.keepScroll=true;render()}
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-go],[data-open],[data-act],[data-sort],[data-pg],[data-navg],[data-alpg],tr[data-row],tr[data-cust]');if(!t)return;
+  if(t.matches('[disabled]'))return;
+  if(t.dataset.navg){NAVC[t.dataset.navg]=NAVC[t.dataset.navg]===false;render.keepScroll=true;return render()}
+  if(t.dataset.go){ev.preventDefault();NAVOPEN=false;return nav(t.dataset.go)}
+  if(t.dataset.open){const tr=t.closest('tr');NAVOPEN=false;return nav('#/req/'+encodeURIComponent(t.dataset.open)+'/'+(isPay()?'payment':'customer')+'?from='+encodeURIComponent(tr&&tr.dataset.from||'all'))}
+  if(t.dataset.sort){const u=ui(t.dataset.list);if(u.sort===t.dataset.sort)u.dir*=-1;else{u.sort=t.dataset.sort;u.dir=t.dataset.sort==='at'?-1:1}$('#results').innerHTML=results(t.dataset.list);return}
+  if(t.dataset.pg){const u=ui(t.dataset.list);u.pg=+t.dataset.pg;$('#results').innerHTML=results(t.dataset.list);return}
+  if(t.dataset.alpg){ui('activity').pg=+t.dataset.alpg;render.keepScroll=true;return render()}
+  if(t.tagName==='TR'&&t.dataset.row)return nav('#/req/'+encodeURIComponent(t.dataset.row)+'/'+(isPay()?'payment':'customer')+'?from='+encodeURIComponent(t.dataset.from||'all'));
+  if(t.tagName==='TR'&&t.dataset.cust)return nav('#/customer/'+encodeURIComponent(t.dataset.cust));
+  const a=t.dataset.act;
+  if(a==='eye'){const p=$('#lp'),s=p.type==='password';p.type=s?'text':'password';t.innerHTML=ic(s?'eyeoff':'eye');t.setAttribute('aria-label',s?'Hide password':'Show password');t.setAttribute('aria-pressed',String(s));return}
+  if(a==='forgot')return toast('Password reset isn\'t available in this prototype. Use the demo sign in shown on this page.');
+  if(a==='logout'){logEv({action:'Demo administrator signed out'});clearSession();NAVOPEN=false;history.replaceState(null,'',location.pathname+location.search);return renderLogin()}
+  if(a==='opennav'){NAVOPEN=true;render.keepScroll=true;render();const s=$('#side .nitem');if(s)s.focus();return}
+  if(a==='closenav'){NAVOPEN=false;render.keepScroll=true;return render()}
+  if(a==='clearf'){const u=ui(t.dataset.list);Object.assign(u,{q:'',kind:'',grp:'',cat:'',x:'',ps:'',pg:1});if(location.hash.indexOf('?')>0)location.hash='#/'+t.dataset.list;else render();return}
+  if(a==='stage')return doStage(t.dataset.tf,t.dataset.a);
+  if(a==='payact')return doPayAct(t.dataset.tf,t.dataset.a);
+  if(a==='release')return doRelease(t.dataset.tf);
+  if(a==='savecfg'){if(!isPay())return;const ad=adm(),n={};let bad='';['intName','intBic','intAddr','nostro','senderName','senderBic'].forEach(k=>{n[k]=($('#cfg_'+k).value||'').trim();if(!n[k])bad='Fill in every field.'});if(!bad&&!/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(n.intBic.toUpperCase()))bad='The intermediary BIC must be 8 or 11 letters and numbers.';if(!bad&&!/^[A-Z0-9]{8}([A-Z0-9]{3})?$/.test(n.senderBic.toUpperCase()))bad='The sender BIC must be 8 or 11 letters and numbers.';if(bad)return toast(bad);n.intBic=n.intBic.toUpperCase();n.senderBic=n.senderBic.toUpperCase();const prev=ad.cfg;ad.cfg=n;admSave(ad);logEv({action:'Intermediary bank settings updated',note:prev.intName+' ('+prev.intBic+') to '+n.intName+' ('+n.intBic+')'});toast('Settings saved. New releases use these details.');return render()}
+  if(a==='resetcfg'){if(!isPay())return;const ad=adm();ad.cfg=Object.assign({},CFG_DEFAULT);admSave(ad);logEv({action:'Intermediary bank settings reset to sample values'});toast('Sample values restored.');return render()}
+  if(a==='addcmt'){const x=$('#cmt'),txt=(x&&x.value||'').trim();if(!txt){toast('Write a comment first.');return x&&x.focus()}const ad=adm(),q=areq(ad,t.dataset.tf);q.comments.push({text:txt,at:new Date().toISOString(),by:ADMIN.id});admSave(ad);logEv({tf:t.dataset.tf,action:'Comment added',note:txt.length>80?txt.slice(0,80)+'…':txt});toast('Comment added.');render.keepScroll=true;return render()}
+  if(a==='psreopen'){const tf=t.dataset.tf;return modal({title:'Reopen for customer uploads?',body:'<p>The customer will be able to replace and resubmit after shipment documents for '+esc(tf)+' in the customer portal. Existing file details stay in place.</p>',reason:'Reason (required)',need:true,ok:'Reopen',onOk:reason=>{rqUpd(tf,r=>{if(r.ps){r.ps.submitted=false;r.ps.status='Partially Uploaded'}});const x=DATA.byTf[tf];logEv({tf,action:'After shipment documents reopened for customer uploads',prev:'Documents Submitted',next:x?psStatus(norm(tf,rqAll()[tf])):'',note:reason});toast('Reopened for customer uploads.');render.keepScroll=true;render()}})}
+  if(a==='seed'){const o=rqAll();let n=0;for(const k in CUSTOMER_SEEDS)if(!o[k]){o[k]=JSON.parse(JSON.stringify(CUSTOMER_SEEDS[k]));n++}memRQ=o;wr(RQK,o);if(n)logEv({action:'Added '+n+' customer portal demo request'+(n>1?'s':'')});toast(n?n+' demo request'+(n>1?'s':'')+' added.':'Nothing to add.');return render()}
+  if(a==='export'){const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),requests:rqAll(),mandate:rd(MSK),admin:adm()},null,2)],{type:'application/json'}),u=URL.createObjectURL(blob),l=document.createElement('a');l.href=u;l.download='fxflow-prototype-data.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);logEv({action:'Prototype data exported'});return toast('Export downloaded.')}
+  if(a==='resetadm')return modal({title:'Clear admin data?',body:'<p>Reviews, comments, approvals recorded here and the activity log will be removed. Customer requests and their statuses stay as they are.</p>',ok:'Clear admin data',bad:1,onOk:()=>{admSave({v:1,req:{},log:[],ledger:[],cfg:adm().cfg});toast('Admin data cleared.');render()}});
+  if(a==='mclose'||(a==='mclose-bg'&&ev.target===t))return closeModal();
+  if(a==='mok'&&MODAL){const r=$('#mreason'),val=r?r.value.trim():'';if(MODAL.need&&!val){$('#merr').textContent='Enter a reason to continue.';return r.focus()}const f=MODAL.onOk;closeModal(true);return f(val)}
+});
+document.addEventListener('submit',ev=>{if(ev.target.id==='loginForm'){ev.preventDefault();doLogin()}});
+document.addEventListener('input',ev=>{const t=ev.target;
+  if(t.dataset.u&&t.dataset.list&&t.tagName==='INPUT'){const u=ui(t.dataset.list);u.q=t.value;u.pg=1;$('#results').innerHTML=results(t.dataset.list)}
+  if(t.dataset.cu==='q'){ui('customers').q=t.value;const pos=t.selectionStart;render.keepScroll=true;render();const n=$('[data-cu="q"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}
+  if(t.dataset.alog==='q'){ui('activity').q=t.value;ui('activity').pg=1;const pos=t.selectionStart;render.keepScroll=true;render();const n=$('[data-alog="q"]');if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(e){}}}});
+document.addEventListener('change',ev=>{const t=ev.target;
+  if(t.dataset.pay){const m=parse().p;return payDraftUpdate(m[1]||'')}
+  if(t.dataset.u&&t.dataset.list&&t.tagName==='SELECT'){const u=ui(t.dataset.list);u[t.dataset.u]=t.value;u.pg=1;if(t.dataset.u==='cat')u._cat=parse().q.cat;render.keepScroll=true;render();const n=$(`select[data-u="${t.dataset.u}"]`);if(n)n.focus();return}
+  if(t.dataset.cu==='kind'){ui('customers').kind=t.value;render.keepScroll=true;return render()}
+  if(t.dataset.docrv){const st=t.value;if(!st)return;const tf=t.dataset.docrv,area=t.dataset.area,k=t.dataset.k;
+    if(st==='Requires Correction')return modal({title:'Mark as Requires Correction?',body:'<p>Tell the customer what needs to change.</p>',reason:'Reason (required)',need:true,ok:'Save',onOk:r=>setDocReview(tf,area,k,st,r)});
+    return setDocReview(tf,area,k,st,'')}
+  if(t.id==='imp'){const f=t.files[0];if(!f)return;const rdr=new FileReader();rdr.onload=()=>{try{const d=JSON.parse(rdr.result),o=rqAll();let n=0,s=0;const inc=d&&d.requests&&typeof d.requests==='object'?d.requests:{};for(const k in inc){if(o[k]){s++;continue}try{norm(k,inc[k]);o[k]=inc[k];n++}catch(e){s++}}memRQ=o;wr(RQK,o);if(d.mandate&&!rd(MSK))wr(MSK,d.mandate);logEv({action:'Prototype data imported',note:n+' added, '+s+' skipped'});toast(n+' request'+(n===1?'':'s')+' added, '+s+' skipped.');render()}catch(e){toast('That file couldn\'t be read as FXFlow data.')}};rdr.readAsText(f)}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){if(MODAL)return closeModal();if(NAVOPEN){NAVOPEN=false;render.keepScroll=true;render()}}
+  if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches('tr[data-row],tr[data-cust]')){ev.preventDefault();ev.target.click()}});
+window.addEventListener('hashchange',()=>{NAVOPEN=false;render();const {q}=parse();if(q.focus){const s=$('#trackq');if(s)s.focus()}});
+window.addEventListener('storage',ev=>{if([RQK,MSK,ADK].indexOf(ev.key)<0||!session())return;const a=document.activeElement;if(MODAL||(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)))return toast('Customer portal data changed. Open another page to refresh.');render.keepScroll=true;render();toast('Updated with the latest customer portal data.')});
+
+render();
+})();
+</script>
+</body>
+</html>
